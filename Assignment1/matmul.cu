@@ -3,23 +3,42 @@
 #include <sys/time.h>
 #include "mmio.h"
 
+
 #define N  512
 #define M  512
 #define P  512
 
 #define REP 10
 
-void matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
-   int i, j, k;
+// Simple kernel. Needs some main driving code aswell as refinement
+__global__ 
+void kernel_matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
+    int k;
+    int f = blockIdx.x * blockDim.x + threadIdx.x;
+    int g = blockIdx.y * blockDim.y + threadIdx.y;
 
-   for(i=0; i<m; i++) {
-      for(j=0; j<p; j++) {
-	C[i*p+j]=0;
-        for(k=0; k<n; k++) {
+
+    float result = 0;
+    for(k=0; k<width; k++) {
+        result += A[f * m + k] * B[k * p + g]
+    }
+    C[f*p+g] = result;
+}
+
+
+void matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
+    int i, j, k;
+
+
+
+    for(i=0; i<m; i++) {
+        for(j=0; j<p; j++) {
+            C[i*p+j]=0;
+            for(k=0; k<n; k++) {
                 C[i*p+j] += A[i*n+k]*B[k*p+j];
             }
-      }
-   }
+        }
+    }
 }
 
 void generate_mat(int m, int n, int p, float *A, float *B) {
