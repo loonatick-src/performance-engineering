@@ -3,8 +3,8 @@
 CXX = g++
 CXX_FLAGS += -std=c++11 -O3 -Wall
 PAR_FLAG = -fopenmp
-#GENERATE = -D GENERATE
-GENERATE = 
+GENERATE = -D GENERATE
+#GENERATE = 
 TIMING = -D TIMING
 
 ifneq (,$(findstring icpc,$(CXX)))
