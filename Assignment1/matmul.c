@@ -3,9 +3,11 @@
 #include <sys/time.h>
 #include "mmio.h"
 
-#define N  512
-#define M  512
-#define P  512
+
+// default working set should not fit in L3 cache
+#define N  1024
+#define M  1024
+#define P  1024
 
 #define REP 10
 
