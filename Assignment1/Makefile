@@ -15,13 +15,19 @@ ifneq ($(SERIAL), 1)
 	CXX_FLAGS += $(PAR_FLAG)
 endif
 
-APPS = matmul transpose
+APPS = matmul transpose tiling omp
 
 .PHONY: all
 
 all: $(APPS)
 
 matmul: matmul.c mmio.c
+	$(CXX) $(CXX_FLAGS) $(GENERATE) $(TIMING) -o $@ $^ $(LFLAGS)
+
+tiling: matmul_tiling.c mmio.c
+	$(CXX) $(CXX_FLAGS) $(GENERATE) $(TIMING) -o $@ $^ $(LFLAGS)
+
+omp: matmul_omp_atomic.c mmio.c
 	$(CXX) $(CXX_FLAGS) $(GENERATE) $(TIMING) -o $@ $^ $(LFLAGS)
 
 transpose: transpose.c mmio.c
