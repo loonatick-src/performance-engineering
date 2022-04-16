@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "mmio.h"
+extern "C" {
+  #include "mmio.h"
+}
+
 
 
 #define N  512
@@ -17,12 +20,14 @@ void kernel_matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
     int f = blockIdx.x * blockDim.x + threadIdx.x;
     int g = blockIdx.y * blockDim.y + threadIdx.y;
 
-
-    float result = 0;
-    for(k=0; k<width; k++) {
-        result += A[f * m + k] * B[k * p + g]
+    if (f < n && g < m) {
+      float result = 0;
+      for(k=0; k<m; k++) {
+          result += A[f * m + k] * B[k * p + g];
+      }
+      C[f*p+g] = result;
     }
-    C[f*p+g] = result;
+    
 }
 
 
@@ -118,12 +123,12 @@ int read_mat(int *m, int *n, int *p, int *nzA, int *nzB, FILE* fa, FILE *fb) {
   if (mm_is_complex(tb)) return -7; 
 
   if (mm_is_matrix(ta) && mm_is_sparse(ta))
-    {
-        if ((ret_code = mm_read_mtx_crd_size(fa, m, n, nzA)) !=0)
-           return -10;
-    }
+  {
+    if ((ret_code = mm_read_mtx_crd_size(fa, m, n, nzA)) !=0) 
+      return -10;
+  }
   else if (mm_is_matrix(ta) && mm_is_array(ta)) {
-	*nzA = 0;
+    *nzA = 0;
         if ((ret_code = mm_read_mtx_array_size(fa, m, n)) !=0)
            return -11;
 
@@ -178,9 +183,11 @@ int main (int argc, char** argv) {
  }
 #endif
 
- A = (float *)calloc(m*n,sizeof(float));
+//  A = (float *)calloc(m*n,sizeof(float));
+ cudaMallocManaged(&A, m*n*sizeof(float));
  if (A==NULL) {printf("Out of memory A! \n"); exit(1);}
- B = (float *)calloc(n*p,sizeof(float));
+//  B = (float *)calloc(n*p,sizeof(float));
+ cudaMallocManaged(&B, n*p*sizeof(float));
  if (B==NULL) {printf("Out of memory B! \n"); exit(1);}
 
 #ifdef GENERATE
@@ -198,18 +205,23 @@ int main (int argc, char** argv) {
    fclose(fb);
 #endif
 
- C = (float *)calloc(m*p,sizeof(float));
+//  C = (float *)calloc(m*p,sizeof(float));
+ cudaMallocManaged(&C, m*p*sizeof(float));
  if (C==NULL) {printf("Out of memory C1! \n"); exit(1);}
 // C2 = (float *)calloc(N*P,sizeof(float));
 // if (C2==NULL) {printf("Out of memory C2! \n"); exit(1);}
 
+dim3 dim_grid(N/32, M/32, 1);
+dim3 dim_block(32, 32, 1);
 //naive implementation 
 #ifdef TIMING
   gettimeofday(&before, NULL); 
 #endif
 
 for (r=0; r<REP; r++) 
- matrix_mult(m,n,p,A,B,C);
+ kernel_matrix_mult<<<dim_grid, dim_block>>>(m,n,p, A, B, C);
+ cudaDeviceSynchronize();
+//  matrix_mult(m,n,p,A,B,C);
 
 #ifdef TIMING
   gettimeofday(&after, NULL);
@@ -226,9 +238,9 @@ for (r=0; r<REP; r++)
  write_sparse(fc,m,p,C);
  fclose(fc);  
 
- free(A);
- free(B);
- free(C);
+ cudaFree(A);
+ cudaFree(B);
+ cudaFree(C);
 // free(C2);
 
 }
