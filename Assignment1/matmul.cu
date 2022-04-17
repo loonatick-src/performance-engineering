@@ -10,32 +10,52 @@ extern "C" {
 #define N  512
 #define M  512
 #define P  512
-
+#define TILEDIM 16
 #define REP 10
 
-// Simple kernel. Needs some main driving code aswell as refinement
+// m = A rows, n is A cols. n is B rows p is B cols
 __global__ 
 void kernel_matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
-    int k;
-    int f = blockIdx.x * blockDim.x + threadIdx.x;
-    int g = blockIdx.y * blockDim.y + threadIdx.y;
+    
+    int bx = blockIdx.x, by = blockIdx.y,
+    tx = threadIdx.x, ty = threadIdx.y,
+    row = by * TILEDIM + ty,
+    col = bx * TILEDIM + tx;
+    
+    __shared__ float ATile[TILEDIM][TILEDIM];
+    __shared__ float BTile[TILEDIM][TILEDIM];
 
-    if (f < n && g < m) {
-      float result = 0;
-      for(k=0; k<m; k++) {
-          result += A[f * m + k] * B[k * p + g];
+    float result = 0;
+    for (int f = 0; f < (n/TILEDIM); ++f){
+      if (row < m && f * TILEDIM + tx < n) {
+        ATile[ty][tx] = A[row*n + f*TILEDIM+tx];
       }
-      C[f*p+g] = result;
+      else {
+        ATile[ty][tx] = 0;
+      }
+      if (col < p && f*TILEDIM+ty <n) {
+        BTile[ty][tx] = B[(f*TILEDIM+ty)*p+col];
+      } else{
+        BTile[ty][tx] = 0;
+      }
+
+      __syncthreads();
+      for(int k=0; k<TILEDIM; k++) {
+          result += ATile[ty][k] * BTile[k][tx];
+          __syncthreads();
+      }
+    }
+    if (row < m && col < p){
+      C[row*p + col] = result;
+    }
+      
     }
     
-}
+
 
 
 void matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
     int i, j, k;
-
-
-
     for(i=0; i<m; i++) {
         for(j=0; j<p; j++) {
             C[i*p+j]=0;
@@ -211,8 +231,9 @@ int main (int argc, char** argv) {
 // C2 = (float *)calloc(N*P,sizeof(float));
 // if (C2==NULL) {printf("Out of memory C2! \n"); exit(1);}
 
-dim3 dim_grid(N/32, M/32, 1);
-dim3 dim_block(32, 32, 1);
+dim3 dim_block(TILEDIM, TILEDIM, 1);
+dim3 dim_grid(n/dim_block.x, m/dim_block.y, 1);
+
 //naive implementation 
 #ifdef TIMING
   gettimeofday(&before, NULL); 
