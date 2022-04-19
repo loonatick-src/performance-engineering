@@ -4,7 +4,8 @@
 extern "C" {
   #include "mmio.h"
 }
-
+#include <cuda.h>
+#include <cuda_profiler_api.h>
 
 
 #define N  512
@@ -176,6 +177,7 @@ int read_mat(int *m, int *n, int *p, int *nzA, int *nzB, FILE* fa, FILE *fb) {
 }
 
 int main (int argc, char** argv) {
+cudaProfilerStart();
  float *A, *B, *C;
 #ifdef TIMING
  struct timeval before, after;
@@ -232,7 +234,7 @@ int main (int argc, char** argv) {
 // if (C2==NULL) {printf("Out of memory C2! \n"); exit(1);}
 
 dim3 dim_block(TILEDIM, TILEDIM, 1);
-dim3 dim_grid(n/dim_block.x, m/dim_block.y, 1);
+dim3 dim_grid(N/dim_block.x, M/dim_block.y, 1);
 
 //naive implementation 
 #ifdef TIMING
@@ -262,6 +264,8 @@ for (r=0; r<REP; r++)
  cudaFree(A);
  cudaFree(B);
  cudaFree(C);
+ cudaProfilerStop();
+ 
 // free(C2);
 
 }
