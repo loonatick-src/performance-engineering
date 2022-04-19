@@ -27,9 +27,10 @@ void kernel_matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
     __shared__ float BTile[TILEDIM][TILEDIM];
 
     float result = 0;
-    for (int f = 0; f < (n/TILEDIM); ++f){
+    for (int f = 0; f < (n + TILEDIM -1)/(TILEDIM); ++f){
       if (row < m && f * TILEDIM + tx < n) {
         ATile[ty][tx] = A[row*n + f*TILEDIM+tx];
+        
       }
       else {
         ATile[ty][tx] = 0;
@@ -48,6 +49,7 @@ void kernel_matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
     }
     if (row < m && col < p){
       C[row*p + col] = result;
+      // printf("%f", result);
     }
       
     }
@@ -106,6 +108,7 @@ void write_sparse(FILE *f, int m, int p, const float *C) {
     mm_write_mtx_crd_size(f, m, p, nz);
 
     for (i=0; i<m*p; i++) {
+      // printf("%f", C[i]);
 	if (C[i] != 0.0) 
           fprintf(f, "%d %d %f\n", i/p+1, i%p+1, C[i]);
     }
