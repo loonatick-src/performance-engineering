@@ -248,12 +248,12 @@ dim3 dim_grid(N/dim_block.x, M/dim_block.y, 1);
 #endif
 
 
-for (r=0; r<REP; r++) 
+for (r=0; r<REP; r++) {
  cudaProfilerStart();
  kernel_matrix_mult<<<dim_grid, dim_block>>>(m,n,p, A, B, C);
  cudaProfilerStop();
  cudaDeviceSynchronize();
- 
+}
 //  matrix_mult(m,n,p,A,B,C);
 
 
