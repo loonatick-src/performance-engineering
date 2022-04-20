@@ -8,6 +8,8 @@ extern "C" {
 #include <cuda_profiler_api.h>
 
 
+#define TIMING
+#define GENERATE
 #define N  512
 #define M  512
 #define P  512
