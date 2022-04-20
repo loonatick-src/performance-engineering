@@ -1,4 +1,6 @@
 using Plots
+using NumericIO
+# using InspectDR
 
 struct RooflineData{F<:Real}
     pf::F
@@ -23,6 +25,7 @@ empirical_rl_data = RooflineData(peakflops_sp, peakflops_sp_avx, peakflops_sp_av
 
 roofline(ai, bw, pf) = min(ai * bw, pf)
 
+# inspectdr()
 pyplot()
 # plotly()
 
@@ -30,20 +33,25 @@ function construct_roofline(data::RooflineData; ai_lo=-4, ai_hi=3)
     ais_ticks = 2.0 .^ (ai_lo:1:ai_hi)
     ais = 2.0 .^ LinRange(ai_lo, ai_hi, 100)
     # AVX2 FMA peakflops, L1 bandwidth
-    p = plot(ais, roofline.(ais, data.bw_l1, data.pf_avx_fma); lc=:blue, xlabel="Arithmetic Intensity (Flops/Byte)", ylabel="Acheived performance (GFLops)", xscale=:log2, yscale=:log10, legend=false)
+    p = plot(ais, roofline.(ais, data.bw_l1, data.pf_avx_fma); lc=:blue, linewidth=0.5, xlabel="Arithmetic Intensity (Flops/Byte)", ylabel="Acheived performance (GFLops)", xscale=:log2, yscale=:log2, legend=false)
     # L2 Bandwidth
-    plot!(p, ais, roofline.(ais, data.bw_l2, data.pf_avx_fma); lc=:blue)
+    plot!(p, ais, roofline.(ais, data.bw_l2, data.pf_avx_fma); lc=:blue, linewidth=0.5)
     # L3 Bandwidth
-    # plot!(p, ais, roofline.(ais, data.bw_l3, data.pf_avx_fma); lc=:blue)
+    plot!(p, ais, roofline.(ais, data.bw_l3, data.pf_avx_fma); lc=:blue, linewidth=0.5)
     # DRAM bandwidth
-    plot!(p, ais, roofline.(ais, data.bw_dram, data.pf_avx_fma); lc=:blue)
+    plot!(p, ais, roofline.(ais, data.bw_dram, data.pf_avx_fma); lc=:blue, linewidth=0.5)
     # AVX peakflops
-    plot!(p, ais, roofline.(ais, data.bw_l1, data.pf_avx); lc=:blue)
+    plot!(p, ais, roofline.(ais, data.bw_l1, data.pf_avx); lc=:blue, linewidth=0.5)
     # scalar peakflops
-    plot!(p, ais, roofline.(ais, data.bw_l1, data.pf); lc=:blue)
-    xticks!(p, ais_ticks)
-    yticks!(p, 10.0 .^ (0:0.5:2))
+    plot!(p, ais, roofline.(ais, data.bw_l1, data.pf); lc=:blue, linewidth=0.5)
+    xticks!(p, ais_ticks, string.(ais_ticks))
+    yticks_iter = 2.0 .^ (0:6)
+    yticks!(p, yticks_iter, string.(yticks_iter))
     return p
 end
 
 empirical_roofline_plot = construct_roofline(empirical_rl_data)
+
+
+# requires `InspectDR.jl`, whose installation got kind of messed up. Troubleshoot after assignment
+# empirical_roofline_plot.layout[:format_xtick] = TickLabelStyle(NumericIO.UEXPONENT_SI)
