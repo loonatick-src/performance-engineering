@@ -44,8 +44,9 @@ void kernel_matrix_mult(int m, int n, int p, float *A, float *B, float *C) {
       __syncthreads();
       for(int k=0; k<TILEDIM; k++) {
           result += ATile[ty][k] * BTile[k][tx];
-          __syncthreads();
+          
       }
+      __syncthreads();
     }
     if (row < m && col < p){
       C[row*p + col] = result;
@@ -180,7 +181,7 @@ int read_mat(int *m, int *n, int *p, int *nzA, int *nzB, FILE* fa, FILE *fb) {
 }
 
 int main (int argc, char** argv) {
-cudaProfilerStart();
+
  float *A, *B, *C;
 #ifdef TIMING
  struct timeval before, after;
@@ -244,14 +245,19 @@ dim3 dim_grid(N/dim_block.x, M/dim_block.y, 1);
   gettimeofday(&before, NULL); 
 #endif
 
+
 for (r=0; r<REP; r++) 
+ cudaProfilerStart();
  kernel_matrix_mult<<<dim_grid, dim_block>>>(m,n,p, A, B, C);
+ cudaProfilerStop();
  cudaDeviceSynchronize();
+ 
 //  matrix_mult(m,n,p,A,B,C);
+
 
 #ifdef TIMING
   gettimeofday(&after, NULL);
-  printf("Reference code: %10.2f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
+  printf("Reference code: %f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
             (before.tv_sec + (before.tv_usec / 1000000.0)))/REP);
 
 #endif
@@ -267,7 +273,7 @@ for (r=0; r<REP; r++)
  cudaFree(A);
  cudaFree(B);
  cudaFree(C);
- cudaProfilerStop();
+ 
  
 // free(C2);
 
