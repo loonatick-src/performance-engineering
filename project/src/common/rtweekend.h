@@ -48,6 +48,14 @@ inline double random_double(double min, double max) {
     return min + (max-min)*random_double();
 }
 
+inline double random_double_r(unsigned int *seedp) {
+    return rand_r(seedp) / (RAND_MAX + 1.0);
+}
+
+inline double random_double_r(double min, double max, unsigned int *seedp) {
+    return min + (max - min) * random_double_r(seedp);
+}
+
 inline int random_int(int min, int max) {
     // Returns a random integer in [min,max].
     return static_cast<int>(random_double(min, max+1));
