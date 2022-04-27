@@ -63,11 +63,13 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            return vec3(random_double(), random_double(), random_double());
+            unsigned int thread_id = (unsigned int) omp_get_thread_num();
+            return vec3(random_double_r(&thread_id), random_double_r(&thread_id), random_double_r(&thread_id));
         }
 
         inline static vec3 random(double min, double max) {
-            return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
+            unsigned int thread_id = (unsigned int) omp_get_thread_num();
+            return vec3(random_double_r(min,max,&thread_id), random_double_r(min,max,&thread_id), random_double_r(min,max,&thread_id));
         }
 
     public:
@@ -128,7 +130,8 @@ inline vec3 unit_vector(vec3 v) {
 
 inline vec3 random_in_unit_disk() {
     while (true) {
-        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+        unsigned int thread_id = (unsigned int) omp_get_thread_num();
+        auto p = vec3(random_double_r(-1,1, &thread_id), random_double_r(-1,1, &thread_id), 0);
         if (p.length_squared() >= 1) continue;
         return p;
     }
