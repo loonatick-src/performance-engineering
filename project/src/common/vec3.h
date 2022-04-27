@@ -13,6 +13,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <omp.h>
 
 using std::sqrt;
 using std::fabs;
