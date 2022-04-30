@@ -172,7 +172,7 @@ int main() {
     }
     debug("Thread %d finished writing pixels", omp_get_thread_num());
     }
-    for (int j = image_height-1; j >= 0; j++) {
+    for (int j = image_height-1; j >= 0; j--) {
         for (int i = 0; i < image_width; i++) {
             check_debug(j < image_height && j >= 0 && i < image_width && i >= 0, "How tf is this out of bounds");
             write_color(std::cout, color(output_image[j][i][0], output_image[j][i][1], output_image[j][i][2]), samples_per_pixel);
