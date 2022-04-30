@@ -133,9 +133,10 @@ inline vec3 unit_vector(vec3 v) {
 }
 
 inline vec3 random_in_unit_disk() {
+    auto thread_id = omp_get_thread_num();
+    unsigned int *seedp = &(seeds[thread_id]);
     while (true) {
-        unsigned int thread_id = (unsigned int) omp_get_thread_num();
-        auto p = vec3(random_double_r(-1,1, &thread_id), random_double_r(-1,1, &thread_id), 0);
+        auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
         if (p.length_squared() >= 1) continue;
         return p;
     }

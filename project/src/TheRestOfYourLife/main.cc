@@ -41,7 +41,7 @@ color ray_color(
     int depth
 ) {
     hit_record rec;
-
+    // debug("Reached depth %d in thread %d", depth, omp_get_thread_num());
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if (depth <= 0)
         return color(0,0,0);
@@ -144,7 +144,9 @@ int main() {
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
-    # pragma omp parallel for  // TODO: add clauses
+    # pragma omp parallel
+    {
+    # pragma omp for  // TODO: add clauses
     for (int j = image_height-1; j >= 0; --j) {
         // if (omp_get_thread_num() == 0)
         //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
@@ -154,7 +156,10 @@ int main() {
             for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = (i + random_double_r(&seeds[thread_id])) / (image_width-1);
                 auto v = (j + random_double_r(&seeds[thread_id])) / (image_height-1);
+                // debug("Calling `cam.get_ray` in thread %d", omp_get_thread_num());
                 ray r = cam.get_ray_r(u, v);
+                // debug("Returned from `cam.get_ray` in thread %d", omp_get_thread_num());
+                // debug("Calling `ray_color` in thread %d", omp_get_thread_num());
                 pixel_color += ray_color(r, background, world, lights, max_depth);
             }
             // write_color(std::cout, pixel_color, samples_per_pixel);
@@ -162,11 +167,12 @@ int main() {
             output_image[i][j][0] = pixel_color.x();
             output_image[i][j][1] = pixel_color.y();
             output_image[i][j][2] = pixel_color.z();
-            // # pragma omp critical
+            # pragma omp critical
             debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
         }
     }
-
+    debug("Thread %d finished writing pixels", omp_get_thread_num());
+    }
     for (int i = image_height-1; i >= 0; i++) {
         for (int j = 0; j < image_width; j++) {
             write_color(std::cout, color(output_image[i][j][0], output_image[i][j][1], output_image[i][j][2]), samples_per_pixel);
