@@ -61,6 +61,10 @@ inline int random_int(int min, int max) {
     return static_cast<int>(random_double(min, max+1));
 }
 
+inline int random_int_r(int min, int max, unsigned int *seedp) {
+    return static_cast<int>(random_double_r(min, max+1, seedp));
+}
+
 // Common Headers
 
 #include "ray.h"

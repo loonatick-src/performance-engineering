@@ -13,6 +13,9 @@
 
 #include "rtweekend.h"
 
+#include <omp.h>
+
+extern unsigned int *seeds;
 
 class camera {
     public:
@@ -55,6 +58,17 @@ class camera {
                 origin + offset,
                 lower_left_corner + s*horizontal + t*vertical - origin - offset,
                 random_double(time0, time1)
+            );
+        }
+
+        ray get_ray_r(double s, double t) const {
+            vec3 rd = lens_radius * random_in_unit_disk();
+            vec3 offset = u * rd.x() + v * rd.y();
+            int thread_id = omp_get_thread_num();
+            return ray(
+                origin + offset,
+                lower_left_corner + s*horizontal + t*vertical - origin - offset,
+                random_double_r(time0, time1, &seeds[thread_id])
             );
         }
 

@@ -14,6 +14,8 @@ project ( RTWeekend
 # Set to c++11
 set ( CMAKE_CXX_STANDARD 11 )
 
+message( "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}" )
+
 # Source
 set ( COMMON_ALL
   src/common/rtweekend.h
@@ -73,6 +75,7 @@ set ( SOURCE_REST_OF_YOUR_LIFE
 add_executable(inOneWeekend      ${SOURCE_ONE_WEEKEND})
 add_executable(theNextWeek       ${SOURCE_NEXT_WEEK})
 add_executable(theRestOfYourLife ${SOURCE_REST_OF_YOUR_LIFE})
+# platform-agnostic method of adding OpenMP flags
 find_package(OpenMP)
 if (OpenMP_CXX_FOUND)
     target_link_libraries(theRestOfYourLife PUBLIC OpenMP::OpenMP_CXX)
