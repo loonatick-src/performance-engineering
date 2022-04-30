@@ -72,8 +72,8 @@ class vec3 {
         }
 
         inline static vec3 random(double min, double max) {
-            unsigned int thread_id = (unsigned int) omp_get_thread_num();
-            return vec3(random_double_r(min,max,&thread_id), random_double_r(min,max,&thread_id), random_double_r(min,max,&thread_id));
+            unsigned int *seedp = &seeds[omp_get_thread_num()];
+            return vec3(random_double_r(min,max,seedp), random_double_r(min,max,seedp), random_double_r(min,max, seedp));
         }
 
     public:

@@ -13,7 +13,7 @@
 #ifdef NDEBUG
 #define debug(M, ...)
 #define debug_bytes(O, ...)
-
+#define debug_conditional(C, M, ...)
 
 #else
 
@@ -43,5 +43,5 @@
     fprintf(stderr, "%x ", *debug_bytes_ptr);\
     putchar('\n'); 
 
-
+#define debug_conditional(C, M, ...) if (C) { debug(M, ##__VA_ARGS__); }
 #endif

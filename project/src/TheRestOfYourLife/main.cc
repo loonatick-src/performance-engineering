@@ -47,15 +47,17 @@ color ray_color(
         return color(0,0,0);
 
     // If the ray hits nothing, return the background color.
-    if (!world.hit(r, 0.001, infinity, rec))
+    auto thread_id = omp_get_thread_num();
+    if (!world.hit(r, 0.001, infinity, rec)) {
         return background;
-
+    }
     scatter_record srec;
     color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.p);
 
+    // debug_conditional(thread_id == 3, "Calling `rec.mat_ptr->scatter` in thread %d", thread_id);
     if (!rec.mat_ptr->scatter(r, rec, srec))
         return emitted;
-
+    // debug_conditional(thread_id == 3, "Returned from `rec.mat_ptr->scatter` in thread %d", thread_id);
     if (srec.is_specular) {
         return srec.attenuation
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
@@ -156,10 +158,7 @@ int main() {
             for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = (i + random_double_r(&seeds[thread_id])) / (image_width-1);
                 auto v = (j + random_double_r(&seeds[thread_id])) / (image_height-1);
-                // debug("Calling `cam.get_ray` in thread %d", omp_get_thread_num());
                 ray r = cam.get_ray_r(u, v);
-                // debug("Returned from `cam.get_ray` in thread %d", omp_get_thread_num());
-                // debug("Calling `ray_color` in thread %d", omp_get_thread_num());
                 pixel_color += ray_color(r, background, world, lights, max_depth);
             }
             // write_color(std::cout, pixel_color, samples_per_pixel);
