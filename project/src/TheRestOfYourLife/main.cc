@@ -163,19 +163,24 @@ int main() {
             }
             // write_color(std::cout, pixel_color, samples_per_pixel);
 
-            output_image[i][j][0] = pixel_color.x();
-            output_image[i][j][1] = pixel_color.y();
-            output_image[i][j][2] = pixel_color.z();
-            # pragma omp critical
-            debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
+            output_image[j][i][0] = pixel_color.x();
+            output_image[j][i][1] = pixel_color.y();
+            output_image[j][i][2] = pixel_color.z();
+            // # pragma omp critical
+            // debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
         }
     }
     debug("Thread %d finished writing pixels", omp_get_thread_num());
     }
-    for (int i = image_height-1; i >= 0; i++) {
-        for (int j = 0; j < image_width; j++) {
-            write_color(std::cout, color(output_image[i][j][0], output_image[i][j][1], output_image[i][j][2]), samples_per_pixel);
+    for (int j = image_height-1; j >= 0; j++) {
+        for (int i = 0; i < image_width; i++) {
+            check_debug(j < image_height && j >= 0 && i < image_width && i >= 0, "How tf is this out of bounds");
+            write_color(std::cout, color(output_image[j][i][0], output_image[j][i][1], output_image[j][i][2]), samples_per_pixel);
+            debug("Wrote pixel [%d, %d] to file", i,j);
         }
     }
     std::cerr << "\nDone.\n";
+    return 0;
+    error:
+    std::cerr << "Get fucked\n";
 }
