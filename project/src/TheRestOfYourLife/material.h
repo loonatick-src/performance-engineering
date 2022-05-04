@@ -16,6 +16,8 @@
 #include "pdf.h"
 #include "texture.h"
 
+extern unsigned int *seeds;
+
 
 struct scatter_record {
     ray specular_ray;
@@ -55,6 +57,7 @@ class lambertian : public material {
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const override {
+            auto thread_id = omp_get_thread_num();
             srec.is_specular = false;
             srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
             srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
@@ -80,6 +83,7 @@ class metal : public material {
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const override {
+            const auto thread_id = omp_get_thread_num();
             vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
             srec.specular_ray =
                 ray(rec.p, reflected + fuzz*random_in_unit_sphere(), r_in.time());
@@ -113,8 +117,8 @@ class dielectric : public material {
 
             bool cannot_refract = refraction_ratio * sin_theta > 1.0;
             vec3 direction;
-
-            if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double())
+            unsigned int thread_id = (unsigned int) omp_get_thread_num();
+            if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double_r(&seeds[thread_id]))
                 direction = reflect(unit_direction, rec.normal);
             else
                 direction = refract(unit_direction, rec.normal, refraction_ratio);

@@ -11,6 +11,7 @@
 
 #include "rtweekend.h"
 
+#include "dbg.h"  // C99 header, should be fine
 #include "aarect.h"
 #include "box.h"
 #include "camera.h"
@@ -20,7 +21,17 @@
 #include "sphere.h"
 
 #include <iostream>
+#include <omp.h>
+#include <boost/multi_array.hpp>
 
+unsigned int *seeds = NULL;
+
+void init_seeds (unsigned int **seeds_ptr, int thread_count) {
+    *seeds_ptr = (unsigned int *) malloc(sizeof(unsigned int) * thread_count);
+    for (int i = 0; i < thread_count; i++) {
+        (*seeds_ptr)[i] = i+1;
+    }
+}
 
 color ray_color(
     const ray& r,
@@ -30,21 +41,23 @@ color ray_color(
     int depth
 ) {
     hit_record rec;
-
+    // debug("Reached depth %d in thread %d", depth, omp_get_thread_num());
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if (depth <= 0)
         return color(0,0,0);
 
     // If the ray hits nothing, return the background color.
-    if (!world.hit(r, 0.001, infinity, rec))
+    auto thread_id = omp_get_thread_num();
+    if (!world.hit(r, 0.001, infinity, rec)) {
         return background;
-
+    }
     scatter_record srec;
     color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.p);
 
+    // debug_conditional(thread_id == 3, "Calling `rec.mat_ptr->scatter` in thread %d", thread_id);
     if (!rec.mat_ptr->scatter(r, rec, srec))
         return emitted;
-
+    // debug_conditional(thread_id == 3, "Returned from `rec.mat_ptr->scatter` in thread %d", thread_id);
     if (srec.is_specular) {
         return srec.attenuation
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
@@ -92,12 +105,14 @@ hittable_list cornell_box() {
 
 int main() {
     // Image
-
+    typedef boost::multi_array<double, 3> image_t;
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int samples_per_pixel = 100;
     const int max_depth = 50;
+
+    image_t output_image(boost::extents[image_height][image_width][3]);
 
     // World
 
@@ -124,21 +139,48 @@ int main() {
 
     // Render
 
+    const int thread_count = 6; // TODO: make this user input / optarg
+    omp_set_num_threads(thread_count);
+
+    init_seeds(&seeds, thread_count);
+
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
+    # pragma omp parallel
+    {
+    # pragma omp for  // TODO: add clauses
     for (int j = image_height-1; j >= 0; --j) {
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        // if (omp_get_thread_num() == 0)
+        //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        auto thread_id = omp_get_thread_num();   
         for (int i = 0; i < image_width; ++i) {
             color pixel_color(0,0,0);
             for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (image_width-1);
-                auto v = (j + random_double()) / (image_height-1);
-                ray r = cam.get_ray(u, v);
+                auto u = (i + random_double_r(&seeds[thread_id])) / (image_width-1);
+                auto v = (j + random_double_r(&seeds[thread_id])) / (image_height-1);
+                ray r = cam.get_ray_r(u, v);
                 pixel_color += ray_color(r, background, world, lights, max_depth);
             }
-            write_color(std::cout, pixel_color, samples_per_pixel);
+            // write_color(std::cout, pixel_color, samples_per_pixel);
+
+            output_image[j][i][0] = pixel_color.x();
+            output_image[j][i][1] = pixel_color.y();
+            output_image[j][i][2] = pixel_color.z();
+            // # pragma omp critical
+            // debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
         }
     }
-
+    debug("Thread %d finished writing pixels", omp_get_thread_num());
+    }
+    for (int j = image_height-1; j >= 0; j--) {
+        for (int i = 0; i < image_width; i++) {
+            check_debug(j < image_height && j >= 0 && i < image_width && i >= 0, "How tf is this out of bounds");
+            write_color(std::cout, color(output_image[j][i][0], output_image[j][i][1], output_image[j][i][2]), samples_per_pixel);
+            debug("Wrote pixel [%d, %d] to file", i,j);
+        }
+    }
     std::cerr << "\nDone.\n";
+    return 0;
+    error:
+    std::cerr << "Get fucked\n";
 }

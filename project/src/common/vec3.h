@@ -13,9 +13,12 @@
 
 #include <cmath>
 #include <iostream>
+#include <omp.h>
 
 using std::sqrt;
 using std::fabs;
+
+extern unsigned int *seeds;
 
 class vec3 {
     public:
@@ -63,11 +66,14 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            return vec3(random_double(), random_double(), random_double());
+            auto thread_id = omp_get_thread_num();
+            auto seedp = &seeds[thread_id];
+            return vec3(random_double_r(seedp), random_double_r(seedp), random_double_r(seedp));
         }
 
         inline static vec3 random(double min, double max) {
-            return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
+            unsigned int *seedp = &seeds[omp_get_thread_num()];
+            return vec3(random_double_r(min,max,seedp), random_double_r(min,max,seedp), random_double_r(min,max, seedp));
         }
 
     public:
@@ -127,8 +133,10 @@ inline vec3 unit_vector(vec3 v) {
 }
 
 inline vec3 random_in_unit_disk() {
+    auto thread_id = omp_get_thread_num();
+    unsigned int *seedp = &(seeds[thread_id]);
     while (true) {
-        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+        auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
         if (p.length_squared() >= 1) continue;
         return p;
     }
