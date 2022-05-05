@@ -14,8 +14,6 @@ project ( RTWeekend
 # Set to c++11
 set ( CMAKE_CXX_STANDARD 11 )
 
-message( "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}" )
-
 # Source
 set ( COMMON_ALL
   src/common/rtweekend.h
@@ -80,6 +78,7 @@ find_package(OpenMP)
 if (OpenMP_CXX_FOUND)
     target_link_libraries(theRestOfYourLife PUBLIC OpenMP::OpenMP_CXX)
 endif()
+
 add_executable(cos_cubed         src/TheRestOfYourLife/cos_cubed.cc         ${COMMON_ALL})
 add_executable(cos_density       src/TheRestOfYourLife/cos_density.cc       ${COMMON_ALL})
 add_executable(integrate_x_sq    src/TheRestOfYourLife/integrate_x_sq.cc    ${COMMON_ALL})
