@@ -10,6 +10,9 @@ TARGET = build/theRestOfYourLife
 
 all: $(TARGET)
 
+profile: CFLAGS += -pg
+profile: release
+
 release: CFLAGS += -DNDEBUG
 release: $(TARGET)
 
