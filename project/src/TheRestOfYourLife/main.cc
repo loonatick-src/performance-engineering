@@ -145,7 +145,7 @@ int main() {
             }
             // write_color(std::cout, pixel_color, samples_per_pixel);
             output_image[j][i][0] = pixel_color.x();
-            output_image[j][i][2] = pixel_color.y();
+            output_image[j][i][1] = pixel_color.y();
             output_image[j][i][2] = pixel_color.z();
         }
     }
