@@ -16,7 +16,7 @@ release: $(TARGET)
 debug: CFLAGS = -g -Wall -Wextra -pedantic -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
 debug: $(TARGET)
 
-$(TARGET): build
+$(TARGET): build src/TheRestOfYourLife/*.cc src/common/*.h
 	$(CC) $(CFLAGS) $(MAIN) -o $@
 
 build:
