@@ -21,9 +21,15 @@
 #include "sphere.h"
 
 #include <iostream>
+#include <chrono>
 #include <omp.h>
 #include <boost/multi_array.hpp>
 
+using std::chrono::steady_clock;
+using seconds = std::chrono::duration<double, std::ratio< 1 > >;
+using std::chrono::time_point;
+
+// haha yes shared mutable global
 unsigned int *seeds = NULL;
 
 void init_seeds (unsigned int **seeds_ptr, int thread_count) {
@@ -109,7 +115,7 @@ int main() {
     const auto aspect_ratio = 1.0 / 1.0;
     const int image_width = 600;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 100;
+    const int samples_per_pixel = 500;
     const int max_depth = 50;
 
     image_t output_image(boost::extents[image_height][image_width][3]);
@@ -146,6 +152,9 @@ int main() {
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
+    // timing
+    auto start_time = steady_clock::now();
+
     # pragma omp parallel
     {
     # pragma omp for  // TODO: add clauses
@@ -172,6 +181,11 @@ int main() {
     }
     debug("Thread %d finished writing pixels", omp_get_thread_num());
     }
+
+    auto end_time = steady_clock::now();
+    double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
+    std::cerr << "Writing image to buffer took " << elapsed_seconds << "seconds\n";
+
     for (int j = image_height-1; j >= 0; j--) {
         for (int i = 0; i < image_width; i++) {
             check_debug(j < image_height && j >= 0 && i < image_width && i >= 0, "How tf is this out of bounds");
