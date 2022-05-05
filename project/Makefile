@@ -3,6 +3,7 @@
 CC = g++
 INCLUDE = -Isrc/common -I/src/theRestOfYourLife -Isrc/common/extra
 CFLAGS = -O3 -Wall -Wextra -pedantic  -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
+CFLAGS_INIT = -Wall -Wextra -pedantic -fwrapv $(INCLUDE)
 
 
 MAIN = src/TheRestOfYourLife/main.cc
@@ -10,7 +11,7 @@ TARGET = build/theRestOfYourLife
 
 all: $(TARGET)
 
-profile: CFLAGS += -pg
+profile: CFLAGS = -pg $(CFLAGS_INIT) -O3
 profile: release
 
 release: CFLAGS += -DNDEBUG
