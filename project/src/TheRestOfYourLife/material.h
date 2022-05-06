@@ -83,8 +83,8 @@ class metal : public material {
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const override {
-            const auto thread_id = omp_get_thread_num();
             vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+            // TODO: `random_in_unit_sphere` should be reentrant variant?
             srec.specular_ray =
                 ray(rec.p, reflected + fuzz*random_in_unit_sphere(), r_in.time());
             srec.attenuation = albedo;

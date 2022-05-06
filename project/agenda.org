@@ -42,5 +42,16 @@
    - [ ] *TODO:* vary resolution
      
 * Performance Modeling
-  
+  The main loop is
+  #+BEGIN_SRC C++
+    for ( auto &pixel: image ) {
+        pixel pixel_color(0, 0, 0);
+        for (int i = 0; i < samples_per_pixel; i++) {
+            auto rand_ray = random_ray(pixel); // random point in pixel boundary
+            pixel_color += ray_color(rand_ray);
+        }
+        std::cout << pixel_color;
+     }
+  #+END_SRC
 
+  

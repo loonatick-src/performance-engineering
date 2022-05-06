@@ -53,17 +53,16 @@ color ray_color(
         return color(0,0,0);
 
     // If the ray hits nothing, return the background color.
-    auto thread_id = omp_get_thread_num();
+    // auto thread_id = omp_get_thread_num();
     if (!world.hit(r, 0.001, infinity, rec)) {
         return background;
     }
     scatter_record srec;
     color emitted = rec.mat_ptr->emitted(r, rec, rec.u, rec.v, rec.p);
 
-    // debug_conditional(thread_id == 3, "Calling `rec.mat_ptr->scatter` in thread %d", thread_id);
     if (!rec.mat_ptr->scatter(r, rec, srec))
         return emitted;
-    // debug_conditional(thread_id == 3, "Returned from `rec.mat_ptr->scatter` in thread %d", thread_id);
+
     if (srec.is_specular) {
         return srec.attenuation
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
