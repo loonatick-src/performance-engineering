@@ -1,0 +1,3 @@
+# baseline
+85.8583 seconds
+86.0339 seconds
