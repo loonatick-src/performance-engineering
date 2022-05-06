@@ -1,0 +1,46 @@
+* Expensive Functions
+** Baseline
+   gprof and perf seem to agree on the following. This
+   is the order reported by gprof, order differs in perf.
+   1. =xz_rect::hit=
+   2. =yz_rect::hit=
+   3. =hittable_list::hit=
+   4. =xy_rect::hit=
+   5. =sphere::hit=
+   6. =dielectric::scatter=
+   7. =lambertian::scattering_pdf=
+** OpenMP
+   Two main differences from the baseline version
+   1. Calls to =rand= replaced with those to =rand_r= wherever
+      possible
+   2. There's OpenMP overhead even with a single thread.
+   The output of perf report looks very different - a lot of
+   the STB image functions are at the top. Consider
+   running again with different options e.g. higher
+   sampling rate?
+
+   From =man perf record=
+   #+BEGIN_QUOTE
+   -F, --freq=
+           Profile at this frequency. Use _max_ to use the currently maximum allowed frequency, i.e. the value in the
+           kernel.perf_event_max_sample_rate sysctl. Will throttle down to the currently maximum allowed frequency. See --strict-freq.
+   #+END_QUOTE
+   
+* Scaling
+** Threads
+   The perf wiki would suggest overhead dominated by 
+   |---------+----------------|
+   | Threads | Time (seconds) |
+   |---------+----------------|
+   |       1 |         81.152 |
+   |       4 |        130.196 |
+   |       8 |        133.188 |
+   |      12 |        135.625 |
+   |      16 |        136.185 |
+   |---------+----------------|
+** Problem size
+   - [ ] *TODO:* vary resolution
+     
+* Performance Modeling
+  
+
