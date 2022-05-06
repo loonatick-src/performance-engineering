@@ -40,7 +40,6 @@
    |---------+----------------|
 ** Problem size
    - [ ] *TODO:* vary resolution
-     
 * Performance Modeling
   The main loop is
   #+BEGIN_SRC C++
@@ -53,5 +52,33 @@
         std::cout << pixel_color;
      }
   #+END_SRC
+  =ray_color= then does a up to 50 stacks deep recursion. We do not change the maximum depth.
+  Here is a high-level overview of its execution.
+  1. Return if maximum recursion depth reached
+  2. Check if ray hits anything in the =world=
+     1. If hits nothing - return background colour
+     2. =world= is a hittable list, details of the object closest to the ray origin are stored in hit record
+  3. if not =rec.scatter(r, rec, srec)= return emitted(...)
+  4. if specular return =attenuation * ray_color(...)=
+  5. else yet another recursion possibility
+** How to optimise
+   Makes sense that the rectangles are the most called and might be the most time-consuming overall - the walls
+   of the cornell box, the box, the aluminium mirror are all those planes. The box is basically a =hittable_list= of
+   those planes. Consequently, each ray is checked for intersection with all 6 sides, which is clearly wasteful.
 
-  
+   Cannot even take advantage of statistics by placing the common case first in the list as the entire list is traversed
+   anyway.
+
+   Here is a [[https://www.jcgt.org/published/0007/03/04/paper-lowres.pdf][paper]] that has a few algorithms. Peter Shirley happens to be one of the authors.
+* Some words on the process
+  I (CK) had been trying to follow the steps given in the [[https://hpc-wiki.info/hpc/Performance_Engineering][RRZE performance engineering wiki]]. The next steps would be
+  - For the hot parts of the code (determined using the runtime profile)
+    - Static code analysis (already started)
+    - Application benchmarking
+    - Parallel case: create and analyse runtime traces
+    - Hardware performance counter profiling
+  - Narrow down performance issues based on acquired data
+  - Analytical model (this is probably more important for our course for whatever reason)
+  - Iterate iterate iterate
+      
+      
