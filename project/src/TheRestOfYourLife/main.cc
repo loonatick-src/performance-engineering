@@ -11,7 +11,7 @@
 
 #include "rtweekend.h"
 
-#include "dbg.h"  // C99 header, should be fine
+// #include "dbg.h"  // C99 header, should be fine
 #include "aarect.h"
 #include "box.h"
 #include "camera.h"
@@ -145,7 +145,7 @@ int main() {
 
     // Render
 
-    const int thread_count = 6; // TODO: make this user input / optarg
+    const int thread_count = 1; // TODO: make this user input / optarg
     omp_set_num_threads(thread_count);
 
     init_seeds(&seeds, thread_count);
@@ -179,7 +179,7 @@ int main() {
             // debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
         }
     }
-    debug("Thread %d finished writing pixels", omp_get_thread_num());
+    // debug("Thread %d finished writing pixels", omp_get_thread_num());
     }
 
     auto end_time = steady_clock::now();
@@ -188,9 +188,9 @@ int main() {
 
     for (int j = image_height-1; j >= 0; j--) {
         for (int i = 0; i < image_width; i++) {
-            check_debug(j < image_height && j >= 0 && i < image_width && i >= 0, "How tf is this out of bounds");
+            // check_debug(j < image_height && j >= 0 && i < image_width && i >= 0, "How tf is this out of bounds");
             write_color(std::cout, color(output_image[j][i][0], output_image[j][i][1], output_image[j][i][2]), samples_per_pixel);
-            debug("Wrote pixel [%d, %d] to file", i,j);
+            // debug("Wrote pixel [%d, %d] to file", i,j);
         }
     }
     std::cerr << "\nDone.\n";
