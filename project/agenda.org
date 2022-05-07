@@ -1,4 +1,4 @@
-* TODO
+* TODO Before the midter presentation
   - [3/3] Make command line arguments
     - [X] thread count
     - [X] image width
@@ -10,8 +10,9 @@
     - [0/1] Vary number of workers (threads)
       - [ ] Corollary - pinned workers, take care of NUMA boundaries
     - [ ] Plot
-  - [ ] Model the box and rect hit functions
-  - [ ] benchmark the box and rect hit functions
+  - [ ] Model the box and rect hit functions -- CK - 08-05-2022
+  - [ ] benchmark the box and rect hit functions -- CK - 08-05-2022
+  - [ ] Read the paper -- CK - 08-05-2022
   - [ ] See [[*Some words on the process][Some words on the process]]
 * Expensive Functions
 ** Baseline
