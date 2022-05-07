@@ -25,10 +25,24 @@
            Profile at this frequency. Use _max_ to use the currently maximum allowed frequency, i.e. the value in the
            kernel.perf_event_max_sample_rate sysctl. Will throttle down to the currently maximum allowed frequency. See --strict-freq.
    #+END_QUOTE
-   
+* TODO
+  - [3/3] Make command line arguments
+    - [X] thread count
+    - [X] image width
+    - [X] samples per pixel
+  - [0/3] Collect some more data
+    - [ ] Create a Python script that does all this
+      NB don't use fstrings like =f"These are variables {foo}, {bar}"=, incompatible with Python3 version on DAS.
+    - [ ] Vary problem size (resolution)
+    - [0/1] Vary number of workers (threads)
+      - [ ] Corollary - pinned workers, take care of NUMA boundaries
+    - [ ] Plot
+  - [ ] Model the box and rect hit functions
+  - [ ] benchmark the box and rect hit functions
+  - [ ] See [[*Some words on the process][Some words on the process]]
 * Scaling
 ** Threads
-   The perf wiki would suggest overhead dominated by 
+   The perf wiki would suggest that the code is overhead-dominated
    |---------+----------------|
    | Threads | Time (seconds) |
    |---------+----------------|
@@ -41,6 +55,7 @@
 ** Problem size
    - [ ] *TODO:* vary resolution
 * Performance Modeling
+** Prelims
   The main loop is
   #+BEGIN_SRC C++
     for ( auto &pixel: image ) {
