@@ -10,10 +10,11 @@
 //==============================================================================================
 
 #include "rtweekend.h"
-
+// commented out because the version of boost on DAS 5 has a `check` function/macro of its own
 // #include "dbg.h"  // C99 header, should be fine
 #include "aarect.h"
 #include "box.h"
+#include "input.h"
 #include "camera.h"
 #include "color.h"
 #include "hittable_list.h"
@@ -108,13 +109,15 @@ hittable_list cornell_box() {
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
     // Image
     typedef boost::multi_array<double, 3> image_t;
     const auto aspect_ratio = 1.0 / 1.0;
-    const int image_width = 600;
+    auto params = read_input(argc, argv);
+    const int image_width = params.image_width;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 100;
+    const int samples_per_pixel = params.samples_per_pixel;
+    const int thread_count = params.thread_count;
     const int max_depth = 50;
 
     image_t output_image(boost::extents[image_height][image_width][3]);
@@ -144,7 +147,13 @@ int main() {
 
     // Render
 
-    const int thread_count = 1; // TODO: make this user input / optarg
+    // I like streams. I hate streams.
+    #ifndef NDEBUG
+    std::cerr << "[DEBUG] " << __FILE__ << ':' << __LINE__ << " in function " << __func__;
+    std::cerr << ": thread_count = " << thread_count << std::endl;
+    std::cerr << ": image_width  = " << image_width << std::endl;
+    std::cerr << ": samples_per_pixel = " << samples_per_pixel << std::endl;
+    #endif
     omp_set_num_threads(thread_count);
 
     init_seeds(&seeds, thread_count);
