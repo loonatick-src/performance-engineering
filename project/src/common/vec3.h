@@ -66,13 +66,12 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            auto thread_id = omp_get_thread_num();
-            auto seedp = &seeds[thread_id];
+            auto seedp = &seeds[omp_get_thread_num()];
             return vec3(random_double_r(seedp), random_double_r(seedp), random_double_r(seedp));
         }
 
         inline static vec3 random(double min, double max) {
-            unsigned int *seedp = &seeds[omp_get_thread_num()];
+            auto seedp = &seeds[omp_get_thread_num()];
             return vec3(random_double_r(min,max,seedp), random_double_r(min,max,seedp), random_double_r(min,max, seedp));
         }
 

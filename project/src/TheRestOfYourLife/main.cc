@@ -20,6 +20,7 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "sphere.h"
+#include "init.h"
 
 #include <iostream>
 #include <chrono>
@@ -33,12 +34,6 @@ using std::chrono::time_point;
 // haha yes shared mutable global
 unsigned int *seeds = NULL;
 
-void init_seeds (unsigned int **seeds_ptr, int thread_count) {
-    *seeds_ptr = (unsigned int *) malloc(sizeof(unsigned int) * thread_count);
-    for (int i = 0; i < thread_count; i++) {
-        (*seeds_ptr)[i] = i+1;
-    }
-}
 
 color ray_color(
     const ray& r,
