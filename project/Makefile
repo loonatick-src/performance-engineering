@@ -21,8 +21,8 @@ debug: $(TARGET)
 $(TARGET): build src/TheRestOfYourLife/main.cc src/TheRestOfYourLife/*.h src/common/*.h
 	$(CC) $(CFLAGS) $(MAIN) -o $@
 
-bench: bench/rect_bench.cpp build
-	$(CC) $(CFLAGS) -fno-omit-frame-pointer bench/*.cpp -o build/bench -lbenchmark
+bench: bench2/rect_hit.cpp build
+	$(CC) -g $(CFLAGS) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer bench2/*.cpp -o build/bench
 
 build:
 	@mkdir -p build
