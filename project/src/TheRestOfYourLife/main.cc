@@ -165,29 +165,29 @@ int main(int argc, char *argv[]) {
 
     # pragma omp parallel
     {
-    # pragma omp for  // TODO: add clauses
-    for (int j = image_height-1; j >= 0; --j) {
-        // if (omp_get_thread_num() == 0)
-        //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-        auto thread_id = omp_get_thread_num();   
-        for (int i = 0; i < image_width; ++i) {
-            color pixel_color(0,0,0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double_r(&seeds[thread_id])) / (image_width-1);
-                auto v = (j + random_double_r(&seeds[thread_id])) / (image_height-1);
-                ray r = cam.get_ray_r(u, v);
-                pixel_color += ray_color(r, background, world, lights, max_depth);
-            }
-            // write_color(std::cout, pixel_color, samples_per_pixel);
+      # pragma omp for collapse(2)
+      for (int j = image_height-1; j >= 0; --j) {
+          for (int i = 0; i < image_width; ++i) {
+              // if (omp_get_thread_num() == 0)
+              //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+              auto thread_id = omp_get_thread_num();   
+              color pixel_color(0,0,0);
+              for (int s = 0; s < samples_per_pixel; ++s) {
+                  auto u = (i + random_double_r(&seeds[thread_id])) / (image_width-1);
+                  auto v = (j + random_double_r(&seeds[thread_id])) / (image_height-1);
+                  ray r = cam.get_ray_r(u, v);
+                  pixel_color += ray_color(r, background, world, lights, max_depth);
+              }
+              // write_color(std::cout, pixel_color, samples_per_pixel);
 
-            output_image[j][i][0] = pixel_color.x();
-            output_image[j][i][1] = pixel_color.y();
-            output_image[j][i][2] = pixel_color.z();
-            // # pragma omp critical
-            // debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
-        }
-    }
-    // debug("Thread %d finished writing pixels", omp_get_thread_num());
+              output_image[j][i][0] = pixel_color.x();
+              output_image[j][i][1] = pixel_color.y();
+              output_image[j][i][2] = pixel_color.z();
+              // # pragma omp critical
+              // debug("Pixel [%d, %d] written by thread %u", i, j, omp_get_thread_num());
+              // debug("Thread %d finished writing pixels", omp_get_thread_num());
+          }
+      }
     }
 
     auto end_time = steady_clock::now();
