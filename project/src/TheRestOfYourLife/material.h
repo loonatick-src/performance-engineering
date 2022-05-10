@@ -16,7 +16,7 @@
 #include "pdf.h"
 #include "texture.h"
 
-extern unsigned int *seeds;
+extern thread_local unsigned int seed;
 
 
 struct scatter_record {
@@ -118,7 +118,7 @@ class dielectric : public material {
             bool cannot_refract = refraction_ratio * sin_theta > 1.0;
             vec3 direction;
             unsigned int thread_id = (unsigned int) omp_get_thread_num();
-            if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double_r(&seeds[thread_id]))
+            if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double_r(&seed))
                 direction = reflect(unit_direction, rec.normal);
             else
                 direction = refract(unit_direction, rec.normal, refraction_ratio);

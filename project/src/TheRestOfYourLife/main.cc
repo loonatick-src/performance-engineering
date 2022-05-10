@@ -31,14 +31,7 @@ using seconds = std::chrono::duration<double, std::ratio< 1 > >;
 using std::chrono::time_point;
 
 // haha yes shared mutable global
-unsigned int *seeds = NULL;
-
-void init_seeds (unsigned int **seeds_ptr, int thread_count) {
-    *seeds_ptr = (unsigned int *) malloc(sizeof(unsigned int) * thread_count);
-    for (int i = 0; i < thread_count; i++) {
-        (*seeds_ptr)[i] = i+1;
-    }
-}
+thread_local unsigned int seed;
 
 color ray_color(
     const ray& r,
@@ -156,8 +149,6 @@ int main(int argc, char *argv[]) {
     #endif
     omp_set_num_threads(thread_count);
 
-    init_seeds(&seeds, thread_count);
-
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
     // timing
@@ -165,16 +156,22 @@ int main(int argc, char *argv[]) {
 
     # pragma omp parallel
     {
+      seed = omp_get_thread_num();
+      
+      #ifndef NDEBUG
+      std::cerr << ": seed for thread" << omp_get_thread_num() << " = " << seed << std::endl;
+      #endif
+      
       # pragma omp for collapse(2)
       for (int j = image_height-1; j >= 0; --j) {
           for (int i = 0; i < image_width; ++i) {
               // if (omp_get_thread_num() == 0)
               //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-              auto thread_id = omp_get_thread_num();   
+              auto thread_id = omp_get_thread_num();
               color pixel_color(0,0,0);
               for (int s = 0; s < samples_per_pixel; ++s) {
-                  auto u = (i + random_double_r(&seeds[thread_id])) / (image_width-1);
-                  auto v = (j + random_double_r(&seeds[thread_id])) / (image_height-1);
+                  auto u = (i + random_double_r(&seed)) / (image_width-1);
+                  auto v = (j + random_double_r(&seed)) / (image_height-1);
                   ray r = cam.get_ray_r(u, v);
                   pixel_color += ray_color(r, background, world, lights, max_depth);
               }
