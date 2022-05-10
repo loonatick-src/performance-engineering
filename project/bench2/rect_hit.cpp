@@ -20,21 +20,22 @@ int BM_XYRectHit(int count) {
     // double elapsed = 0.0l;
     int hit_count = 0;
 
+    double x = 1, y = 0, z = 1;
+    double dx = -2.0l / (static_cast<double>(count));
+    ray r(orig, vec3(x, y, z)); 
+    auto dr = vec3(dx, 0, 0);
+
     for (int i = 0; i < count; i++) {
-        // generate random ray
-        auto direction = random_in_hemisphere(vec3(0, 0, 1));
-        ray r(orig, direction);
 
         // auto start_time = steady_clock::now();
         auto hit_p = plane.hit(r, 0.0, infinity, rec);
-        // auto end_time = steady_clock::now(); 
-        // if (hit_p) {
+        if (hit_p) {
             hit_count++;
-        // }
-        // elapsed += std::chrono::duration_cast<seconds>(end_time - start_time).count();
+        }
+        r.dir += dr;
     }
 
-    //std::cerr << elapsed / count << " seconds" << std::endl;
+    // std::cerr << elapsed / count << " seconds" << std::endl;
 
     return hit_count;
 }
