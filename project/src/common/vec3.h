@@ -75,6 +75,35 @@ class vec3 {
             return vec3(random_double_r(min,max,seedp), random_double_r(min,max,seedp), random_double_r(min,max, seedp));
         }
 
+        // construct vector from spherical coordinates
+        // theta: azimuth (angle with +ve z-axis)
+        // phi: polar (angle of projection on x-y plane with +ve x-axis)
+        inline static vec3 from_spherical(double r, double theta, double phi) {
+            auto sin_theta = sin(theta);
+            auto cos_theta = cos(theta);
+            auto cos_phi = cos(phi);
+            auto sin_phi = sin(phi);
+            auto r_sin_theta = r * sin_theta;
+            auto x = r_sin_theta * cos_phi;
+            auto y = r_sin_theta * sin_phi;
+            auto z = r * cos_theta;
+            return vec3(x, y, z);
+        }
+
+        // construct unit vector from spherical coordinates
+        // theta: azimuth (angle with +ve z-axis)
+        // phi: polar (angle of projection on x-y plane with +ve x-axis)
+        inline static vec3 unit_from_spherical(double theta, double phi) {
+            auto sin_theta = sin(theta);
+            auto cos_theta = cos(theta);
+            auto cos_phi = cos(phi);
+            auto sin_phi = sin(phi);
+            auto x = sin_theta * cos_phi;
+            auto y = sin_theta * sin_phi;
+            auto z = cos_theta;
+            return vec3(x, y, z);
+        }
+
     public:
         double e[3];
 };
@@ -149,6 +178,15 @@ inline vec3 random_in_unit_sphere() {
     }
 }
 
+
+// NOT REENTRANT
+inline vec3 random_in_unit_sphere2() {
+    auto theta = random_double(0, M_PI);
+    auto phi = random_double(0, 2.0l*M_PI);
+    return vec3::unit_from_spherical(theta, phi);
+}
+
+
 inline vec3 random_unit_vector() {
     return unit_vector(random_in_unit_sphere());
 }
@@ -160,6 +198,11 @@ inline vec3 random_in_hemisphere(const vec3& normal) {
     else
         return -in_unit_sphere;
 }
+
+inline vec3 random_in_hemisphere2(const vec3& normal) {
+
+}
+
 
 inline vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2*dot(v,n)*n;
