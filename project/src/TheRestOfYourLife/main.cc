@@ -20,6 +20,7 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "sphere.h"
+#include "init.h"
 
 #include <iostream>
 #include <chrono>
@@ -30,7 +31,6 @@ using std::chrono::steady_clock;
 using seconds = std::chrono::duration<double, std::ratio< 1 > >;
 using std::chrono::time_point;
 
-// haha yes shared mutable global
 thread_local unsigned int seed;
 
 color ray_color(
