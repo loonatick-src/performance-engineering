@@ -105,13 +105,13 @@ hittable_list cornell_box() {
 int main(int argc, char *argv[]) {
     // Image
     typedef boost::multi_array<double, 3> image_t;
-    const auto aspect_ratio = 1.0 / 1.0;
     auto params = read_input(argc, argv);
     const int image_width = params.image_width;
-    const int image_height = static_cast<int>(image_width / aspect_ratio);
+    const int image_height = params.image_height;
     const int samples_per_pixel = params.samples_per_pixel;
     const int thread_count = params.thread_count;
-    const int max_depth = 50;
+    const int max_depth = params.max_depth;
+    const double aspect_ratio = ((double)image_width) / ((double)image_height);
 
     image_t output_image(boost::extents[image_height][image_width][3]);
 
