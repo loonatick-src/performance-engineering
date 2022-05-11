@@ -20,6 +20,7 @@
 #include "hittable_list.h"
 #include "material.h"
 #include "sphere.h"
+#include "init.h"
 
 #include <iostream>
 #include <chrono>
