@@ -16,7 +16,7 @@
 
 #include <omp.h>
 
-extern unsigned int *seeds;
+extern thread_local unsigned int seed;
 
 class camera {
     public:
@@ -70,7 +70,7 @@ class camera {
             return ray(
                 origin + offset,
                 lower_left_corner + s*horizontal + t*vertical - origin - offset,
-                random_double_r(time0, time1, &seeds[thread_id])
+                random_double_r(time0, time1, &seed)
             );
         }
 

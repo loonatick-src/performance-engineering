@@ -18,7 +18,7 @@
 using std::sqrt;
 using std::fabs;
 
-extern unsigned int *seeds;
+extern thread_local unsigned int seed;
 
 class vec3 {
     public:
@@ -66,12 +66,13 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            auto seedp = &seeds[omp_get_thread_num()];
+            auto thread_id = omp_get_thread_num();
+            auto seedp = &seed;
             return vec3(random_double_r(seedp), random_double_r(seedp), random_double_r(seedp));
         }
 
         inline static vec3 random(double min, double max) {
-            auto seedp = &seeds[omp_get_thread_num()];
+            unsigned int *seedp = &seed;
             return vec3(random_double_r(min,max,seedp), random_double_r(min,max,seedp), random_double_r(min,max, seedp));
         }
 
@@ -162,7 +163,7 @@ inline vec3 unit_vector(vec3 v) {
 
 inline vec3 random_in_unit_disk() {
     auto thread_id = omp_get_thread_num();
-    unsigned int *seedp = &(seeds[thread_id]);
+    unsigned int *seedp = &seed;
     while (true) {
         auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
         if (p.length_squared() >= 1) continue;
