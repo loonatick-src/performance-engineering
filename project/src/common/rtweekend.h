@@ -62,6 +62,8 @@ inline int random_int(int min, int max) {
 }
 
 inline int random_int_r(int min, int max, unsigned int *seedp) {
+    // TODO: `rand_r` generates an int, do not need `random_double_r`
+    // for generating a random int
     return static_cast<int>(random_double_r(min, max+1, seedp));
 }
 
