@@ -16,7 +16,7 @@ int BM_XYRectHit(int count) {
     hit_record rec;
     const point3 orig(1,1,1);
     auto white = make_shared<lambertian>(color(0.73, 0.73, 0.73));
-    xy_rect plane(0,5,0,2,5,white);
+    xy_rect plane(0,1,0,1,5,white);
     // double elapsed = 0.0l;
     int hit_count = 0;
 
@@ -26,7 +26,6 @@ int BM_XYRectHit(int count) {
     auto dr = vec3(dx, 0, 0);
 
     for (int i = 0; i < count; i++) {
-
         // auto start_time = steady_clock::now();
         auto hit_p = plane.hit(r, 0.0, infinity, rec);
         if (hit_p) {
