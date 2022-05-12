@@ -57,7 +57,6 @@ class lambertian : public material {
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const override {
-            auto thread_id = omp_get_thread_num();
             srec.is_specular = false;
             srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
             srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
@@ -117,7 +116,6 @@ class dielectric : public material {
 
             bool cannot_refract = refraction_ratio * sin_theta > 1.0;
             vec3 direction;
-            unsigned int thread_id = (unsigned int) omp_get_thread_num();
             if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double_r(&seed))
                 direction = reflect(unit_direction, rec.normal);
             else
