@@ -37,7 +37,7 @@ color ray_color(
     const ray& r,
     const color& background,
     const hittable& world,
-    shared_ptr<hittable> lights,
+    shared_ptr<hittable> lights, /* why can this not be const l-value reference? */
     int depth
 ) {
     hit_record rec;
@@ -62,7 +62,11 @@ color ray_color(
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
     }
 
+    // PERF: `hittable_pdf` constructor takes `lights` by value, which
+    // presumably calls `shared_ptr`'s copy constructor and hence
+    // does atomic refcount incrementation
     auto light_ptr = make_shared<hittable_pdf>(lights, rec.p);
+    // both arguments copy constructed
     mixture_pdf p(light_ptr, srec.pdf_ptr);
     ray scattered = ray(rec.p, p.generate(), r.time());
     auto pdf_val = p.value(scattered.direction());
@@ -167,7 +171,6 @@ int main(int argc, char *argv[]) {
           for (int i = 0; i < image_width; ++i) {
               // if (omp_get_thread_num() == 0)
               //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-              auto thread_id = omp_get_thread_num();
               color pixel_color(0,0,0);
               for (int s = 0; s < samples_per_pixel; ++s) {
                   auto u = (i + random_double_r(&seed)) / (image_width-1);
@@ -200,6 +203,4 @@ int main(int argc, char *argv[]) {
     }
     std::cerr << "\nDone.\n";
     return 0;
-    error:
-    std::cerr << "Get fucked\n";
 }
