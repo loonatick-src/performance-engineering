@@ -14,7 +14,7 @@ using std::chrono::time_point;
 
 int BM_XYRectHit(int count) {
     hit_record rec;
-    const point3 orig(1,1,1);
+    const point3 orig(0.5l,0.5l,0.5l);
     auto white = make_shared<lambertian>(color(0.73, 0.73, 0.73));
     xy_rect plane(0,1,0,1,5,white);
     // double elapsed = 0.0l;
