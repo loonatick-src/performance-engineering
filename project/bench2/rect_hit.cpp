@@ -6,7 +6,7 @@
 #include <iostream>
 #include <chrono>
 
-unsigned int *seeds = NULL;
+thread_local unsigned int seed;
 
 using std::chrono::steady_clock;
 using seconds = std::chrono::duration<double, std::ratio< 1 > >;
@@ -40,9 +40,7 @@ int BM_XYRectHit(int count) {
 }
 
 int main() {
-    init_seeds(&seeds, omp_get_num_threads());
-
-    const int count = 2e8;
+    const int count = 2e9;
     auto hit_count = BM_XYRectHit(count);
     std::cerr << static_cast<double>(hit_count) / static_cast<double>(count) * 100.0l
         << " % rays hit the plane."
