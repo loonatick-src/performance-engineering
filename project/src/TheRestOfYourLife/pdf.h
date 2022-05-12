@@ -124,6 +124,7 @@ class mixture_pdf : public pdf {
         }
 
         virtual vec3 generate() const override {
+            // TODO: change to `random_double_r`
             if (random_double() < 0.5)
                 return p[0]->generate();
             else
