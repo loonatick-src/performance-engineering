@@ -63,7 +63,6 @@ class camera {
         }
 
         ray get_ray_r(double s, double t) const {
-            int thread_id = omp_get_thread_num();
             // debug("Seed initialized to %u", seeds[thread_id]);
             vec3 rd = lens_radius * random_in_unit_disk();
             vec3 offset = u * rd.x() + v * rd.y();

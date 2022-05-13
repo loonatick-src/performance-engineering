@@ -11,7 +11,7 @@
 
 #include "rtweekend.h"
 // commented out because the version of boost on DAS 5 has a `check` function/macro of its own
-// #include "dbg.h"  // C99 header, should be fine
+#include "dbg.h"  // C99 header, should be fine
 #include "aarect.h"
 #include "box.h"
 #include "input.h"
@@ -26,6 +26,7 @@
 #include <chrono>
 #include <omp.h>
 #include <boost/multi_array.hpp>
+#include <utility>  // std::move
 
 using std::chrono::steady_clock;
 using seconds = std::chrono::duration<double, std::ratio< 1 > >;
@@ -86,21 +87,21 @@ hittable_list cornell_box() {
     auto green = make_shared<lambertian>(color(.12, .45, .15));
     auto light = make_shared<diffuse_light>(color(15, 15, 15));
 
-    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
-    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
-    objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
-    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
-    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
-    objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+    objects.add(std::move(make_unique<yz_rect>(0, 555, 0, 555, 555, green)));
+    objects.add(std::move(make_unique<yz_rect>(0, 555, 0, 555, 0, red)));
+    objects.add(std::move(make_unique<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light))));
+    objects.add(std::move(make_unique<xz_rect>(0, 555, 0, 555, 555, white)));
+    objects.add(std::move(make_unique<xz_rect>(0, 555, 0, 555, 0, white)));
+    objects.add(std::move(make_unique<xy_rect>(0, 555, 0, 555, 555, white)));
 
     shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
-    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
-    box1 = make_shared<rotate_y>(box1, 15);
-    box1 = make_shared<translate>(box1, vec3(265,0,295));
-    objects.add(box1);
+    shared_ptr<hittable> box1_internal = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
+    box1_internal = make_shared<rotate_y>(box1_internal, 15);
+    auto box1 = translate(box1_internal, vec3(265,0,295));
+    objects.add(std::move(make_unique<translate>(box1)));
 
     auto glass = make_shared<dielectric>(1.5);
-    objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
+    objects.add(std::move(make_unique<sphere>(point3(190,90,190), 90 , glass)));
 
     return objects;
 }
@@ -120,11 +121,9 @@ int main(int argc, char *argv[]) {
     image_t output_image(boost::extents[image_height][image_width][3]);
 
     // World
-
     auto lights = make_shared<hittable_list>();
-    lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
-    lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
-
+    lights->add(make_unique<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
+    lights->add(make_unique<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
     auto world = cornell_box();
 
     color background(0,0,0);
@@ -166,7 +165,7 @@ int main(int argc, char *argv[]) {
       std::cerr << ": seed for thread" << omp_get_thread_num() << " = " << seed << std::endl;
       #endif
       
-      # pragma omp for collapse(2)
+      # pragma omp for
       for (int j = image_height-1; j >= 0; --j) {
           for (int i = 0; i < image_width; ++i) {
               // if (omp_get_thread_num() == 0)

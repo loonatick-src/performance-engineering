@@ -20,22 +20,24 @@
 
 
 class hittable_list : public hittable  {
-    public:
-        hittable_list() {}
-        hittable_list(shared_ptr<hittable> object) { add(object); }
+public:
+    hittable_list() {}
+    hittable_list(unique_ptr<hittable> object) { add(std::move(object)); }
 
-        void clear() { objects.clear(); }
-        void add(shared_ptr<hittable> object) { objects.push_back(object); }
+    void clear() { objects.clear(); }
+    
+    // void add(shared_ptr<hittable> object) { objects.push_back(object); }
+    void add(unique_ptr<hittable> object) { objects.push_back(std::move(object)); }
 
-        virtual bool hit(
-            const ray& r, double t_min, double t_max, hit_record& rec) const override;
+    virtual bool hit(
+                     const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
-        virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
-        virtual double pdf_value(const vec3 &o, const vec3 &v) const override;
-        virtual vec3 random(const vec3 &o) const override;
+    virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
+    virtual double pdf_value(const vec3 &o, const vec3 &v) const override;
+    virtual vec3 random(const vec3 &o) const override;
 
-    public:
-        std::vector<shared_ptr<hittable>> objects;
+public:
+        std::vector<unique_ptr<hittable>> objects;
 };
 
 
@@ -44,7 +46,6 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
     auto hit_anything = false;
     auto closest_so_far = t_max;
 
-    // PERF: does this trigger atomic refcount incrementation?
     for (const auto& object : objects) {
         if (object->hit(r, t_min, closest_so_far, temp_rec)) {
             hit_anything = true;
@@ -83,10 +84,9 @@ double hittable_list::pdf_value(const point3& o, const vec3& v) const {
     return sum;
 }
 
-
+// TODO: change to `random_int_r`
 vec3 hittable_list::random(const vec3 &o) const {
     auto int_size = static_cast<int>(objects.size());
-    // TODO: change to `random_int_r`
     return objects[random_int(0, int_size-1)]->random(o);
 }
 
