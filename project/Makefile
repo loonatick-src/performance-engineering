@@ -1,6 +1,6 @@
 CC = g++
 INCLUDE = -Isrc/TheRestOfYourLife/ -Isrc/common/ -Isrc/common/extra/
-CFLAGS = -O3 -Wall -Wextra -pedantic  -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
+CFLAGS = -O3 -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
 CFLAGS_INIT = -fopenmp -Wall -Wextra -pedantic -fwrapv $(INCLUDE) $(OPTFLAGS)
 
 
