@@ -1,0 +1,6 @@
+This is the minimum set of matrices to use for your experiments for assignment 3:
+ash958.mtx
+arc130.mtx
+bcspwr06.mtx
+ch7-7-b1.mtx
+fs_760_1.mtx
