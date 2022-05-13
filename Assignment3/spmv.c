@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include "mmio.h"
+#include <omp.h>
+#include <time.h>
 
 #ifdef CSR
 #include "csr_spmv_kernel.h"
@@ -26,6 +28,8 @@
 
 #define N  512
 #define M  512
+
+#define threadNum 4
 
 #define REP 1
 
@@ -303,9 +307,11 @@ int main (int argc, char** argv) {
  int *sA_cols, *sA_rows;
 #endif
 
+#ifdef PARALLEL
+  omp_set_num_threads(threadNum);
+#endif
 
-
- struct timeval before, after;
+ struct timespec before={0,0}, after={0,0};
  int r, m, n, err;
  int nzA=0, is_pattern = 1;
  FILE *fa, *fc;
@@ -391,7 +397,7 @@ int main (int argc, char** argv) {
 
 //naive implementation 
 #ifdef TIMING
-  gettimeofday(&before, NULL); 
+  clock_gettime(CLOCK_MONOTONIC, &before); 
 #endif
 
 for (r=0; r<REP; r++) 
@@ -419,9 +425,20 @@ for (r=0; r<REP; r++)
 #endif
 
 #ifdef TIMING
-  gettimeofday(&after, NULL);
-  printf("Reference code: %10.6f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
-            (before.tv_sec + (before.tv_usec / 1000000.0)))/REP);
+  clock_gettime(CLOCK_MONOTONIC, &after);
+
+  #ifdef CSR
+    printf("CSR code: %f nanoseconds \n", ((after.tv_sec*1e9 + after.tv_nsec) -
+            (before.tv_sec*1e9 + before.tv_nsec))/REP);
+  #elif CSC
+    printf("CSC code: %f nanoseconds \n", ((after.tv_sec*1e9 + after.tv_nsec) -
+            (before.tv_sec*1e9 + before.tv_nsec))/REP);
+  #elif COO
+    printf("COO code: %f nanoseconds \n", ((after.tv_sec*1e9 + after.tv_nsec) -
+            (before.tv_sec*1e9 + before.tv_nsec))/REP);
+  #endif
+
+  
 
 #endif
 
