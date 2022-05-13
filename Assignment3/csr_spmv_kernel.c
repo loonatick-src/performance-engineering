@@ -24,3 +24,20 @@ void csr_spmv(int m, const int *A_rows, const int *A_cols_idx, const float *A_va
         C[i] = tmp;
     }
 }
+
+void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *A_values, const float *B, float *C) {
+    int i,j;
+    int row_start, row_end;  
+    #pragma omp parallel for
+    for (i = 0; i < m; i++) {
+        float tmp = 0.0f;
+        row_start = A_rows[i];
+        row_end = A_rows[i + 1];
+        // #pragma omp parallel for reduction(tmp:+)
+        for (j = row_start; j < row_end; j++) {
+            tmp += A_values[j] * B[A_cols_idx[j]];
+        }
+        
+        C[i] = tmp;
+    }
+}
