@@ -22,6 +22,7 @@
 #include "sphere.h"
 #include "init.h"
 
+#include <thread>
 #include <iostream>
 #include <chrono>
 #include <omp.h>
@@ -36,8 +37,8 @@ thread_local unsigned int seed;
 color ray_color(
     const ray& r,
     const color& background,
-    const hittable& world,
-    shared_ptr<hittable> lights,
+    const hittable* world,
+    const hittable* lights,
     int depth
 ) {
     hit_record rec;
@@ -48,7 +49,7 @@ color ray_color(
 
     // If the ray hits nothing, return the background color.
     // auto thread_id = omp_get_thread_num();
-    if (!world.hit(r, 0.001, infinity, rec)) {
+    if (!world->hit(r, 0.001, infinity, rec)) {
         return background;
     }
     scatter_record srec;
@@ -61,9 +62,10 @@ color ray_color(
         return srec.attenuation
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
     }
+    return color(0,0,0);
 
-    auto light_ptr = make_shared<hittable_pdf>(lights, rec.p);
-    mixture_pdf p(light_ptr, srec.pdf_ptr);
+    auto light_ptr = make_unique<hittable_pdf>(lights, rec.p);
+    mixture_pdf p(light_ptr.get(), srec.pdf_ptr.get());
     ray scattered = ray(rec.p, p.generate(), r.time());
     auto pdf_val = p.value(scattered.direction());
 
@@ -74,29 +76,30 @@ color ray_color(
 }
 
 
-hittable_list cornell_box() {
-    hittable_list objects;
+hittable_list* cornell_box() {
+    // TODO: store all created objects in a cache list for cleanup later
+    auto objects = new hittable_list();
 
-    auto red   = make_shared<lambertian>(color(.65, .05, .05));
-    auto white = make_shared<lambertian>(color(.73, .73, .73));
-    auto green = make_shared<lambertian>(color(.12, .45, .15));
-    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    auto red   = new lambertian(new solid_color(color(.65, .05, .05)));
+    auto white = new lambertian(new solid_color(color(.73, .73, .73)));
+    auto green = new lambertian(new solid_color(color(.12, .45, .15)));
+    auto light = new diffuse_light(new solid_color(color(15, 15, 15)));
 
-    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
-    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
-    objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
-    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
-    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
-    objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+    objects->add(new yz_rect(0, 555, 0, 555, 555, green));
+    objects->add(new yz_rect(0, 555, 0, 555, 0, red));
+    objects->add(new flip_face(new xz_rect(213, 343, 227, 332, 554, light)));
+    objects->add(new xz_rect(0, 555, 0, 555, 555, white));
+    objects->add(new xz_rect(0, 555, 0, 555, 0, white));
+    objects->add(new xy_rect(0, 555, 0, 555, 555, white));
 
-    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
-    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
-    box1 = make_shared<rotate_y>(box1, 15);
-    box1 = make_shared<translate>(box1, vec3(265,0,295));
-    objects.add(box1);
+    material* aluminum = new metal(color(0.8, 0.85, 0.88), 0.0);
+    hittable* box1 = new box(point3(0,0,0), point3(165,330,165), aluminum);
+    box1 = new rotate_y(box1, 15);
+    box1 = new translate(box1, vec3(265,0,295));
+    objects->add(box1);
 
-    auto glass = make_shared<dielectric>(1.5);
-    objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
+    auto glass = new dielectric(1.5);
+    objects->add(new sphere(point3(190,90,190), 90 , glass));
 
     return objects;
 }
@@ -117,11 +120,11 @@ int main(int argc, char *argv[]) {
 
     // World
 
-    auto lights = make_shared<hittable_list>();
-    lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
-    lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
-
     auto world = cornell_box();
+    auto lights = new hittable_list();
+    lights->add(new xz_rect(213, 343, 227, 332, 554, new material()));
+    lights->add(new sphere(point3(190, 90, 190), 90, new material()));
+
 
     color background(0,0,0);
 
@@ -136,7 +139,7 @@ int main(int argc, char *argv[]) {
     auto time0 = 0.0;
     auto time1 = 1.0;
 
-    camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus, time0, time1);
+    auto cam = new camera(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus, time0, time1);
 
     // Render
 
@@ -159,11 +162,11 @@ int main(int argc, char *argv[]) {
       seed = omp_get_thread_num();
       
       #ifndef NDEBUG
-      std::cerr << ": seed for thread" << omp_get_thread_num() << " = " << seed << std::endl;
+      //std::cerr << ": seed for thread" << omp_get_thread_num() << " = " << seed << std::endl;
       #endif
       
-      # pragma omp for collapse(2)
-      for (int j = image_height-1; j >= 0; --j) {
+      # pragma omp for collapse(2) schedule(static)
+      for (int j = 0; j < image_height; ++j) {
           for (int i = 0; i < image_width; ++i) {
               // if (omp_get_thread_num() == 0)
               //     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
@@ -172,7 +175,7 @@ int main(int argc, char *argv[]) {
               for (int s = 0; s < samples_per_pixel; ++s) {
                   auto u = (i + random_double_r(&seed)) / (image_width-1);
                   auto v = (j + random_double_r(&seed)) / (image_height-1);
-                  ray r = cam.get_ray_r(u, v);
+                  ray r = cam->get_ray_r(u, v);
                   pixel_color += ray_color(r, background, world, lights, max_depth);
               }
               // write_color(std::cout, pixel_color, samples_per_pixel);
