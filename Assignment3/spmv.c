@@ -397,11 +397,23 @@ int main (int argc, char** argv) {
 for (r=0; r<REP; r++) 
  /* Call the SpMV kernel. */
 #ifdef CSR
-  csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+  #ifdef PARALLEL
+    csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+  #else
+    csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+  #endif
 #elif CSC
-  csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+  #ifdef PARALLEL
+    csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+  #else
+    csc_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+  #endif
 #elif COO
-  coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+  #ifdef PARALLEL
+    coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+  #else
+    coo_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+  #endif
 #else 
   spmv(m,n,A,B,C);
 #endif
