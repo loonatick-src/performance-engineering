@@ -1,6 +1,8 @@
 #include "coo_spmv_kernel.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
+#include <math.h>
 /*
  * m = number of cols 
  * A_cols = col pointers, m+1 of them, each element with the start of the nonZero's in the columns array 
@@ -26,7 +28,8 @@ void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_v
     int lastSize = nz - (amount_of_loop * tNum);
     float newC[] = {};
 
-    #pragma omp parallel {
+    #pragma omp parallel 
+    {
         float *fakeC;
         bool isLast = (omp_get_thread_num() == tNum);
         if (isLast) {
@@ -44,3 +47,4 @@ void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_v
     }
     
 }
+

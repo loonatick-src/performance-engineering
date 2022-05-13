@@ -29,9 +29,9 @@
 #define N  512
 #define M  512
 
-#define threadNum 4
+#define threadNum 8
 
-#define REP 1
+#define REP 10
 
 
 /* 
@@ -311,7 +311,7 @@ int main (int argc, char** argv) {
   omp_set_num_threads(threadNum);
 #endif
 
- struct timespec before={0,0}, after={0,0};
+ struct timespec before, halfway, after;
  int r, m, n, err;
  int nzA=0, is_pattern = 1;
  FILE *fa, *fc;
@@ -400,43 +400,87 @@ int main (int argc, char** argv) {
   clock_gettime(CLOCK_MONOTONIC, &before); 
 #endif
 
-for (r=0; r<REP; r++) 
- /* Call the SpMV kernel. */
-#ifdef CSR
-  #ifdef PARALLEL
-    csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
-  #else
-    csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+#ifdef COMPARISON
+  
+  for (r=0; r<REP; r++) {
+    /* Call the SpMV kernel. */
+    #ifdef CSR
+      csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C);
+    #elif CSC
+      csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #elif COO
+      coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #else 
+      spmv(m,n,A,B,C);
+    #endif
+  }
+
+
+  
+  clock_gettime(CLOCK_MONOTONIC, &halfway); 
+  
+
+  for (r=0; r<REP; r++) {
+    /* Call the SpMV kernel. */
+    #ifdef CSR
+      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+    #elif CSC
+      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #elif COO
+        coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #else 
+      spmv(m,n,A,B,C);
+    #endif
+  }
+  
+#else
+    for (r=0; r<REP; r++) 
+  /* Call the SpMV kernel. */
+  #ifdef CSR
+    #ifdef PARALLEL
+      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+    #else
+      csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+    #endif
+  #elif CSC
+    #ifdef PARALLEL
+      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #else
+      csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #endif
+  #elif COO
+    #ifdef PARALLEL
+      coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #else
+      coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #endif
+  #else 
+    spmv(m,n,A,B,C);
   #endif
-#elif CSC
-  #ifdef PARALLEL
-    csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
-  #else
-    csc_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
-  #endif
-#elif COO
-  #ifdef PARALLEL
-    coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
-  #else
-    coo_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
-  #endif
-#else 
-  spmv(m,n,A,B,C);
 #endif
+
+
 
 #ifdef TIMING
   clock_gettime(CLOCK_MONOTONIC, &after);
+  double first_run = ((halfway.tv_sec*1e9 + halfway.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
+  double  second_run = ((after.tv_sec*1e9 + after.tv_nsec) - (halfway.tv_sec*1e9 + halfway.tv_nsec))/REP;
+  double  total_run = ((after.tv_sec*1e9 + after.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
+  printf("float %f\n", halfway.tv_sec*1e9 + halfway.tv_nsec);
 
-  #ifdef CSR
-    printf("CSR code: %f nanoseconds \n", ((after.tv_sec*1e9 + after.tv_nsec) -
-            (before.tv_sec*1e9 + before.tv_nsec))/REP);
-  #elif CSC
-    printf("CSC code: %f nanoseconds \n", ((after.tv_sec*1e9 + after.tv_nsec) -
-            (before.tv_sec*1e9 + before.tv_nsec))/REP);
-  #elif COO
-    printf("COO code: %f nanoseconds \n", ((after.tv_sec*1e9 + after.tv_nsec) -
-            (before.tv_sec*1e9 + before.tv_nsec))/REP);
+
+  #ifdef COMPARISON
+    printf("Total runtime: %f nanoseconds\n", total_run);
+    printf("Sequential code: %f nanoseconds \n", first_run);
+
+    printf("Parallel code: %f nanoseconds \n", second_run);
+    printf("This is a difference of: %f nanoseconds\n The speedup is: %f\n", (first_run - second_run), (first_run / second_run));
+    
+  #else 
+    printf("Reference code: %f nanoseconds \n", total_run);
+
   #endif
+
 
   
 
