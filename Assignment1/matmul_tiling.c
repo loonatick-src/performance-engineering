@@ -23,7 +23,7 @@
 #define M  512
 #define P  512
 
-#define REP 1
+#define REP 10
 
 #define BYTES_PER_CACHE_LINE 64
 
@@ -253,7 +253,7 @@ int main (int argc, char** argv) {
     
 #ifdef TIMING
     gettimeofday(&after, NULL);
-    printf("Reference code: %10.2f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
+    printf("Reference code: %f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
                                                  (before.tv_sec + (before.tv_usec / 1000000.0)))/REP);
     
 #endif

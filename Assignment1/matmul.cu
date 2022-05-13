@@ -259,8 +259,8 @@ for (r=0; r<REP; r++)
 
 #ifdef TIMING
   gettimeofday(&after, NULL);
-  printf("Reference code: %f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
-            (before.tv_sec + (before.tv_usec / 1000000.0)))/REP);
+  printf("Reference code: %lf seconds \n", ((after.tv_sec + (after.tv_nssec / 1000000000.0)) -
+            (before.tv_sec + (before.tv_nsec / 1000000000.0)))/REP);
 
 #endif
 
