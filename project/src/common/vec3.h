@@ -66,7 +66,6 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            auto thread_id = omp_get_thread_num();
             auto seedp = &seed;
             return vec3(random_double_r(seedp), random_double_r(seedp), random_double_r(seedp));
         }
@@ -162,8 +161,7 @@ inline vec3 unit_vector(vec3 v) {
 }
 
 inline vec3 random_in_unit_disk() {
-    auto thread_id = omp_get_thread_num();
-    unsigned int *seedp = &seed;
+    auto seedp = &seed;
     while (true) {
         auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
         if (p.length_squared() >= 1) continue;
@@ -180,10 +178,10 @@ inline vec3 random_in_unit_sphere() {
 }
 
 
-// NOT REENTRANT
-inline vec3 random_in_unit_sphere2() {
-    auto theta = random_double(0, M_PI);
-    auto phi = random_double(0, 2.0l*M_PI);
+inline vec3 random_in_unit_sphere_new() {
+    auto seedp = &seed;
+    auto theta = random_double_r(0, M_PI, seedp);
+    auto phi = random_double_r(0, 2.0l*M_PI, seedp);
     return vec3::unit_from_spherical(theta, phi);
 }
 
@@ -199,11 +197,6 @@ inline vec3 random_in_hemisphere(const vec3& normal) {
     else
         return -in_unit_sphere;
 }
-
-inline vec3 random_in_hemisphere2(const vec3& normal) {
-
-}
-
 
 inline vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2*dot(v,n)*n;
