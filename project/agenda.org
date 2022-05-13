@@ -1,0 +1,140 @@
+* TODO Before the midterm presentation
+  - [3/3] Make command line arguments
+    - [X] thread count
+    - [X] image width
+    - [X] samples per pixel
+  - [0/3] Collect some more data
+    - [ ] Create a Python script that does all this
+      NB don't use fstrings like =f"These are variables {foo}, {bar}"=, incompatible with Python3 version on DAS.
+    - [ ] Vary problem size (resolution)
+    - [0/1] Vary number of workers (threads)
+      - [ ] Corollary - pinned workers, take care of NUMA boundaries
+    - [ ] Plots
+  - [ ] Model the box and rect hit functions -- CK - 09-05-2022
+  - [-] benchmark the box and rect hit functions -- CK - 09-05-2022
+    - [X] rect
+      For some reason perf is reporting very little time spent in the actual benchmark
+    - [ ] box
+  - [ ] Read the paper -- CK - 09-05-2022
+  - [ ] See [[*Some words on the process][Some words on the process]]
+* Expensive Functions
+** Baseline
+   gprof and perf seem to agree on the following. This
+   is the order reported by gprof, order differs in perf.
+   1. =xz_rect::hit=
+   2. =yz_rect::hit=
+   3. =hittable_list::hit=
+   4. =xy_rect::hit=
+   5. =sphere::hit=
+   6. =dielectric::scatter=
+   7. =lambertian::scattering_pdf=
+** OpenMP
+   Two main differences from the baseline version
+   1. Calls to =rand= replaced with those to =rand_r= wherever
+      possible
+   2. There's OpenMP overhead even with a single thread.
+   The output of perf report looks very different - a lot of
+   the STB image functions are at the top. Consider
+   running again with different options e.g. higher
+   sampling rate?
+
+   From =man perf record=
+   #+BEGIN_QUOTE
+   -F, --freq=
+           Profile at this frequency. Use _max_ to use the currently maximum allowed frequency, i.e. the value in the
+           kernel.perf_event_max_sample_rate sysctl. Will throttle down to the currently maximum allowed frequency. See --strict-freq.
+   #+END_QUOTE
+* Measurements
+  I ran the following on my laptop.
+  #+begin_src
+  Performance counter stats for './bench':
+
+         20,250.78 msec task-clock                #    1.000 CPUs utilized
+                49      context-switches          #    0.002 K/sec
+                 0      cpu-migrations            #    0.000 K/sec
+               150      page-faults               #    0.007 K/sec
+   52,50,09,05,663      cycles                    #    2.593 GHz
+   53,97,16,73,478      instructions              #    1.03  insn per cycle
+    6,62,07,67,086      branches                  #  326.939 M/sec
+      49,86,63,443      branch-misses             #    7.53% of all branches // <============
+
+      20.251834068 seconds time elapsed
+
+      20.251116000 seconds user
+       0.000000000 seconds sys
+  #+end_src
+  Very high branch miss rate for some reason. I also removed the conditional in the benchmarking
+  function that counts how many rays hit the plane, and the branch misprediction rate remained roughly
+  the same.
+
+  From =man perf record=
+  #+begin_quote
+  -b, --branch-any
+           Enable taken branch stack sampling. Any type of taken branch
+           may be sampled. This is a shortcut for --branch-filter any.
+           See --branch-filter for more infos.
+  #+end_quote
+  So, =perf record -b ./bench= should also store branch prediction information.
+* Scaling
+** Threads
+   The perf wiki would suggest that the code is overhead-dominated
+   |---------+----------------|
+   | Threads | Time (seconds) |
+   |---------+----------------|
+   |       1 |         81.152 |
+   |       4 |        130.196 |
+   |       8 |        133.188 |
+   |      12 |        135.625 |
+   |      16 |        136.185 |
+   |---------+----------------|
+** Problem size
+   - [ ] *TODO:* vary resolution
+* Performance Modeling
+** Prelims
+  The main loop is
+  #+BEGIN_SRC C++
+    for ( auto &pixel: image ) {
+        pixel pixel_color(0, 0, 0);
+        for (int i = 0; i < samples_per_pixel; i++) {
+            auto rand_ray = random_ray(pixel); // random point in pixel boundary
+            pixel_color += ray_color(rand_ray);
+        }
+        std::cout << pixel_color;
+     }
+  #+END_SRC
+  =ray_color= then does a up to 50 stacks deep recursion. We do not change the maximum depth.
+  Here is a high-level overview of its execution.
+  1. Return if maximum recursion depth reached
+  2. Check if ray hits anything in the =world=
+     1. If hits nothing - return background colour
+     2. =world= is a hittable list, details of the object closest to the ray origin are stored in hit record
+  3. if not =rec.scatter(r, rec, srec)= return emitted(...)
+  4. if specular return =attenuation * ray_color(...)=
+  5. else yet another recursion possibility
+** How to optimise
+   Makes sense that the rectangles are the most called and might be the most time-consuming overall - the walls
+   of the cornell box, the box, the aluminium mirror are all those planes. The box is basically a =hittable_list= of
+   those planes. Consequently, each ray is checked for intersection with all 6 sides, which is clearly wasteful.
+
+   Cannot even take advantage of statistics by placing the common case first in the list as the entire list is traversed
+   anyway.
+
+   Here is a [[https://www.jcgt.org/published/0007/03/04/paper-lowres.pdf][paper]] that has a few algorithms. Peter Shirley happens to be one of the authors.
+
+   In his CppCon 2019 talk, Matt Godbolt found that the triangle-intersection code had some unpredictable branches.
+   Consider using perf-state to have a look at branch misses.
+
+   As for the scenery hits, instead of updating the entire hit record at every hit, he updated only the index
+   of the world entity that the ray hit, and updated the hit record at the end.
+* Some words on the process
+  I (CK) had been trying to follow the steps given in the [[https://hpc-wiki.info/hpc/Performance_Engineering][RRZE performance engineering wiki]]. The next steps would be
+  - For the hot parts of the code (determined using the runtime profile)
+    - Static code analysis (already started)
+    - Application benchmarking
+    - Parallel case: create and analyse runtime traces
+    - Hardware performance counter profiling
+  - Narrow down performance issues based on acquired data
+  - Analytical model (this is probably more important for our course for whatever reason)
+  - Iterate iterate iterate
+      
+      
