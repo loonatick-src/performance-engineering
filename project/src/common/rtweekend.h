@@ -14,7 +14,7 @@
 #include <limits>
 #include <memory>
 
-
+extern thread_local unsigned int seed;
 // Usings
 
 using std::unique_ptr;
@@ -40,16 +40,6 @@ inline double clamp(double x, double min, double max) {
     return x;
 }
 
-inline double random_double() {
-    // Returns a random real in [0,1).
-    return rand() / (RAND_MAX + 1.0);
-}
-
-inline double random_double(double min, double max) {
-    // Returns a random real in [min,max).
-    return min + (max-min)*random_double();
-}
-
 inline double random_double_r(unsigned int *seedp) {
     return rand_r(seedp) / (RAND_MAX + 1.0);
 }
@@ -58,9 +48,15 @@ inline double random_double_r(double min, double max, unsigned int *seedp) {
     return min + (max - min) * random_double_r(seedp);
 }
 
-inline int random_int(int min, int max) {
-    // Returns a random integer in [min,max].
-    return static_cast<int>(random_double(min, max+1));
+inline double random_double() {
+    // Returns a random real in [0,1).
+    return random_double_r(&seed);
+}
+
+inline double random_double(double min, double max) {
+    // Returns a random real in [min,max).
+    return random_double_r(min, max, &seed);
+
 }
 
 inline int random_int_r(int min, int max, unsigned int *seedp) {
@@ -68,6 +64,12 @@ inline int random_int_r(int min, int max, unsigned int *seedp) {
     // for generating a random int
     return static_cast<int>(random_double_r(min, max+1, seedp));
 }
+
+inline int random_int(int min, int max) {
+    // Returns a random integer in [min,max].
+    return random_int_r(min, max, &seed);
+}
+
 
 // Common Headers
 
