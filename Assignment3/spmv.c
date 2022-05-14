@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include "mmio.h"
+#include <omp.h>
+#include <time.h>
 
 #ifdef CSR
 #include "csr_spmv_kernel.h"
@@ -27,7 +29,9 @@
 #define N  512
 #define M  512
 
-#define REP 1
+#define threadNum 8
+
+#define REP 10
 
 
 /* 
@@ -303,9 +307,11 @@ int main (int argc, char** argv) {
  int *sA_cols, *sA_rows;
 #endif
 
+#ifdef PARALLEL
+  omp_set_num_threads(threadNum);
+#endif
 
-
- struct timeval before, after;
+ struct timespec before, halfway, after;
  int r, m, n, err;
  int nzA=0, is_pattern = 1;
  FILE *fa, *fc;
@@ -391,25 +397,92 @@ int main (int argc, char** argv) {
 
 //naive implementation 
 #ifdef TIMING
-  gettimeofday(&before, NULL); 
+  clock_gettime(CLOCK_MONOTONIC, &before); 
 #endif
 
-for (r=0; r<REP; r++) 
- /* Call the SpMV kernel. */
-#ifdef CSR
-  csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
-#elif CSC
-  csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
-#elif COO
-  coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
-#else 
-  spmv(m,n,A,B,C);
+#ifdef COMPARISON
+  
+  for (r=0; r<REP; r++) {
+    /* Call the SpMV kernel. */
+    #ifdef CSR
+      csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C);
+    #elif CSC
+      csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #elif COO
+      coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #else 
+      spmv(m,n,A,B,C);
+    #endif
+  }
+
+
+  
+  clock_gettime(CLOCK_MONOTONIC, &halfway); 
+  
+
+  for (r=0; r<REP; r++) {
+    /* Call the SpMV kernel. */
+    #ifdef CSR
+      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+    #elif CSC
+      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #elif COO
+        coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #else 
+      spmv(m,n,A,B,C);
+    #endif
+  }
+  
+#else
+    for (r=0; r<REP; r++) 
+  /* Call the SpMV kernel. */
+  #ifdef CSR
+    #ifdef PARALLEL
+      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+    #else
+      csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+    #endif
+  #elif CSC
+    #ifdef PARALLEL
+      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #else
+      csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+    #endif
+  #elif COO
+    #ifdef PARALLEL
+      coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #else
+      coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+    #endif
+  #else 
+    spmv(m,n,A,B,C);
+  #endif
 #endif
+
+
 
 #ifdef TIMING
-  gettimeofday(&after, NULL);
-  printf("Reference code: %10.6f seconds \n", ((after.tv_sec + (after.tv_usec / 1000000.0)) -
-            (before.tv_sec + (before.tv_usec / 1000000.0)))/REP);
+  clock_gettime(CLOCK_MONOTONIC, &after);
+  double first_run = ((halfway.tv_sec*1e9 + halfway.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
+  double  second_run = ((after.tv_sec*1e9 + after.tv_nsec) - (halfway.tv_sec*1e9 + halfway.tv_nsec))/REP;
+  double  total_run = ((after.tv_sec*1e9 + after.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
+  printf("float %f\n", halfway.tv_sec*1e9 + halfway.tv_nsec);
+
+
+  #ifdef COMPARISON
+    printf("Total runtime: %f nanoseconds\n", total_run);
+    printf("Sequential code: %f nanoseconds \n", first_run);
+
+    printf("Parallel code: %f nanoseconds \n", second_run);
+    printf("This is a difference of: %f nanoseconds\n The speedup is: %f\n", (first_run - second_run), (first_run / second_run));
+    
+  #else 
+    printf("Reference code: %f nanoseconds \n", total_run);
+
+  #endif
+
+
+  
 
 #endif
 
