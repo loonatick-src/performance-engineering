@@ -12,13 +12,22 @@ all: $(TARGET)
 release: CFLAGS += -DNDEBUG
 release: $(TARGET)
 
-profile: CFLAGS = -pg $(CFLAGS_INIT)
+profile_gprof: CFLAGS += -pg
+profile_gprof: profile
+
+profile: CFLAGS += -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
 profile: release
+
+flat_profile_gprof: CFLAGS += -pg
+flat_profile_gprof: flat_profile
+
+flat_profile: CFLAGS += -g
+flat_profile: release
 
 debug: CFLAGS = -g -Wall -Wextra -pedantic -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
 debug: $(TARGET)
 
-$(TARGET): build src/TheRestOfYourLife/main.cc src/TheRestOfYourLife/*.h src/common/*.h
+$(TARGET): src/TheRestOfYourLife/main.cc src/TheRestOfYourLife/*.h src/common/*.h build
 	$(CC) $(CFLAGS) $(MAIN) -o $@
 
 bench: bench2/rect_hit.cpp build
