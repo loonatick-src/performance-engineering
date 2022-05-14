@@ -70,6 +70,19 @@ inline int random_int(int min, int max) {
     return random_int_r(min, max, &seed);
 }
 
+// TODO: write a proper one for double
+inline float fast_inv_sqrtf(float x) {
+    int i = reinterpret_cast<int>(x);
+    i = 0x5f3759df - (i >> 1);
+    float y = reinterpret_cast<float>(i);
+    y = y * (1.5 - (0.5 * x * y * y));
+    return y;
+}
+
+inline double fast_inv_sqrt(double x) {
+    return (double) fast_inv_sqrtf((float) x);
+}
+
 
 // Common Headers
 
