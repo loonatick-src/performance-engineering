@@ -21,21 +21,36 @@ void coo_spmv(int nz, const int *A_rows, const int *A_cols, const float *A_value
     int i;
 
     for (i = 0; i < nz; i++) {
-        printf("A_rows %d -- A_cols %d, i :: %d :: A_vals: %lf\n", A_rows[i], A_cols[i], i, A_values[i]);
-	C[A_rows[i]] += A_values[i] * B[A_cols[i]];
+        // printf("A_rows %d -- A_cols %d, i :: %d :: A_vals: %lf\n", A_rows[i], A_cols[i], i, A_values[i]);
+	    C[A_rows[i]] += A_values[i] * B[A_cols[i]];
     }
 }
 
 void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_values, const float *B, float *C, int max_threads) {
     // int i;
-    int *sCols;
+    // int *sCols;
+     if (floor(nz / 2) < 128 || max_threads == 2) {
+        omp_set_num_threads(2);
+    } else if (floor(nz / 4) < 128 || max_threads == 4) {
+        omp_set_num_threads(4);
+    } else if (floor(nz / 8) < 128 || max_threads == 8) {
+        omp_set_num_threads(8);
+    } else {
+        omp_set_num_threads(16);
+    }
     // // #pragma omp parallel for schedule(dynamic) 
     // int *howMany = (int *) calloc(nz, sizeof(int));
     // #pragma omp parallel for reduction
     // for (int b=0;b<nz;b++) {
     //     howMany[A_rows[b]]++;
     // }
-    // #pragma omp parallel for
+    int i;
+    #pragma omp parallel for
+    for (i = 0; i < nz; i++) {
+        // printf("A_rows %d -- A_cols %d, i :: %d :: A_vals: %lf\n", A_rows[i], A_cols[i], i, A_values[i]);
+        #pragma omp atomic
+	    C[A_rows[i]] += A_values[i] * B[A_cols[i]];
+    }
     // for (i = 0; i < nz; i++) {
     //     printf("A_rows %d -- A_cols %d, i :: %d\n", A_rows[i], A_cols[i], i);
     //     // #pragma omp atomic
