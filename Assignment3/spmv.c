@@ -31,7 +31,7 @@
 
 #define threadNum 8
 
-#define REP 10
+#define REP 1000
 
 
 /* 
@@ -466,9 +466,9 @@ int main (int argc, char** argv) {
 
 #ifdef TIMING
   clock_gettime(CLOCK_MONOTONIC, &after);
-  double first_run = ((halfway.tv_sec*1e9 + halfway.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
-  double  second_run = ((after.tv_sec*1e9 + after.tv_nsec) - (halfway.tv_sec*1e9 + halfway.tv_nsec))/REP;
-  double  total_run = ((after.tv_sec*1e9 + after.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
+  double first_run = (((double)halfway.tv_sec*1.0e9 + halfway.tv_nsec) - ((double)before.tv_sec*1.0e9 + before.tv_nsec))/REP;
+  double  second_run = (((double)after.tv_sec*1.0e9 + after.tv_nsec) - ((double)halfway.tv_sec*1.0e9 + halfway.tv_nsec))/REP;
+  double  total_run = (((double)after.tv_sec*1.0e9 + after.tv_nsec) - ((double)before.tv_sec*1.0e9 + before.tv_nsec))/REP;
   // printf("float %f\n", halfway.tv_sec*1e9 + halfway.tv_nsec);
 
 
