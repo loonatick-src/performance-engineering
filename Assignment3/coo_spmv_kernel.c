@@ -49,3 +49,28 @@ void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_v
     
 }
 
+// void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_values, const float *B, float *C, int max_threads) {
+//      if (floor(nz / 2) < 128 || max_threads == 2) {
+//         omp_set_num_threads(2);
+//     } else if (floor(nz / 4) < 128 || max_threads == 4) {
+//         omp_set_num_threads(4);
+//     } else if (floor(nz / 8) < 128 || max_threads == 8) {
+//         omp_set_num_threads(8);
+//     } else {
+//         omp_set_num_threads(16);
+//     }
+//     int i;
+//     float tmp;
+//     #pragma omp parallel for
+//     for (i = 0; i < nz; i++) {
+//         for(int idx_c  )
+
+
+//         int idx_c = A_cols[i];
+//         int idx_r = A_rows[i];
+//         // #pragma omp atomic    
+// 	    tmp = C[idx_r] +  A_values[i] * B[idx_c];
+//         C[idx_r] = tmp;
+//     }
+    
+// }

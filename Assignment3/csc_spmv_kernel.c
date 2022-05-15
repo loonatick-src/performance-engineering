@@ -53,8 +53,7 @@ void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_va
 
 /* Newest parallel version. Gets most speedup so far. Still issues with amount of threads.. */
 void csc_spmv_par(int n, const int *A_cols, const int *A_rows_idx, const float *A_values, const float *B, float *C, int max_threads) {
-    int j;
-    int i = 0;
+    int j, i = 0;
     int lastIdx = A_cols[n - 1];
     omp_set_num_threads(max_threads - 1);
     if (lastIdx / 2 < 128 || max_threads == 2) {
@@ -79,7 +78,7 @@ void csc_spmv_par(int n, const int *A_cols, const int *A_rows_idx, const float *
             #pragma omp atomic
             i++;
         }
-        tmp += A_values[j] * B[i];
-        C[idx] = tmp;
+        float tmp2 = tmp + A_values[j] * B[i];
+        C[idx] = tmp2;
     }
 }
