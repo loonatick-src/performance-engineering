@@ -308,7 +308,7 @@ int main (int argc, char** argv) {
 #endif
 
 #ifdef PARALLEL
-  omp_set_num_threads(threadNum);
+  int max_threads = omp_get_max_threads();
 #endif
 
  struct timespec before, halfway, after;
@@ -423,11 +423,11 @@ int main (int argc, char** argv) {
   for (r=0; r<REP; r++) {
     /* Call the SpMV kernel. */
     #ifdef CSR
-      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C, max_threads); 
     #elif CSC
-      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C, max_threads);
     #elif COO
-        coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+        coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C, max_threads); 
     #else 
       spmv(m,n,A,B,C);
     #endif
@@ -435,28 +435,31 @@ int main (int argc, char** argv) {
   
 #else
     for (r=0; r<REP; r++) 
+    {
+      #ifdef CSR
+        #ifdef PARALLEL
+          csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C, max_threads); 
+        #else
+          csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
+        #endif
+      #elif CSC
+        #ifdef PARALLEL
+          csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C, max_threads);
+        #else
+          csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
+        #endif
+      #elif COO
+        #ifdef PARALLEL
+          coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C, max_threads); 
+        #else
+          coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
+        #endif
+      #else 
+        spmv(m,n,A,B,C);
+      #endif
+    }
   /* Call the SpMV kernel. */
-  #ifdef CSR
-    #ifdef PARALLEL
-      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
-    #else
-      csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
-    #endif
-  #elif CSC
-    #ifdef PARALLEL
-      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
-    #else
-      csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
-    #endif
-  #elif COO
-    #ifdef PARALLEL
-      coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
-    #else
-      coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
-    #endif
-  #else 
-    spmv(m,n,A,B,C);
-  #endif
+
 #endif
 
 
@@ -466,7 +469,7 @@ int main (int argc, char** argv) {
   double first_run = ((halfway.tv_sec*1e9 + halfway.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
   double  second_run = ((after.tv_sec*1e9 + after.tv_nsec) - (halfway.tv_sec*1e9 + halfway.tv_nsec))/REP;
   double  total_run = ((after.tv_sec*1e9 + after.tv_nsec) - (before.tv_sec*1e9 + before.tv_nsec))/REP;
-  printf("float %f\n", halfway.tv_sec*1e9 + halfway.tv_nsec);
+  // printf("float %f\n", halfway.tv_sec*1e9 + halfway.tv_nsec);
 
 
   #ifdef COMPARISON

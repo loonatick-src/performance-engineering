@@ -20,6 +20,7 @@ void csr_spmv(int m, const int *A_rows, const int *A_cols_idx, const float *A_va
         float tmp = 0.0f;
         row_start = A_rows[i];
         row_end = A_rows[i + 1];
+        // printf("What the A? %d :: %d\n", A_rows[i],A_rows[i + 1]);
         
         for (j = row_start; j < row_end; j++) {
             tmp += A_values[j] * B[A_cols_idx[j]];
@@ -29,33 +30,30 @@ void csr_spmv(int m, const int *A_rows, const int *A_cols_idx, const float *A_va
     }
 }
 
-void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *A_values, const float *B, float *C) {
-    
-    
-    int tNum = omp_get_max_threads();
-    int amount_of_loop = floor(m / tNum);
-    int lastSize = m - (amount_of_loop * tNum);
+void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *A_values, const float *B, float *C, int max_threads) {
     
 
-    #pragma omp parallel 
-    {
-        int i,j;
-        int thNum = omp_get_thread_num();
-        int startVal = amount_of_loop * thNum;
-        int endVal = amount_of_loop * ( 1 + thNum);
-        if (thNum == tNum) {
-            endVal = lastSize;
+    printf("max:%d\n", omp_get_max_threads());
+    if (floor(m / 2) < 100 || max_threads == 2) {
+        omp_set_num_threads(2);
+    } else if (floor(m / 4) < 100 || max_threads == 4) {
+        omp_set_num_threads(4);
+    } else if (floor(m / 8) < 100 || max_threads == 8) {
+        omp_set_num_threads(8);
+    } else {
+        omp_set_num_threads(16);
+    }
+    #pragma omp parallel for     
+    for (int i = 0; i < m; i++) {
+        float tmp = 0.0f;
+        // printf("What the A? %d :: %d\n", A_rows[i],A_rows[i + 1]);
+        // #pragma omp parallel for reduction( + : tmp)
+        for (int j = A_rows[i]; j < A_rows[i  + 1]; j++) {
+            tmp += A_values[j] * B[A_cols_idx[j]];
         }
-        for (i = startVal; i < endVal; i++) {
-            float tmp = 0.0f;
-            // printf("What the A? %d\n", A_rows[i]);
-            // #pragma omp parallel for reduction(+:tmp)
-            for (j = A_rows[i]; j < A_rows[i+1]; j++) {
-                tmp += A_values[j] * B[A_cols_idx[j]];
-            }
-            
-            C[i] = tmp;
-        }
+
+        // #pragma omp atomic
+        C[i] = tmp;
     }
    
 }

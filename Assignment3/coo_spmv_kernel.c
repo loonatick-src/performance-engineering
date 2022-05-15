@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
+
+// struct rInf {
+//     int rowId;
+//     int *cols;
+//     int numOfCols;
+// }
 /*
  * m = number of cols 
  * A_cols = col pointers, m+1 of them, each element with the start of the nonZero's in the columns array 
@@ -15,36 +21,43 @@ void coo_spmv(int nz, const int *A_rows, const int *A_cols, const float *A_value
     int i;
 
     for (i = 0; i < nz; i++) {
+        printf("A_rows %d -- A_cols %d, i :: %d :: A_vals: %lf\n", A_rows[i], A_cols[i], i, A_values[i]);
 	C[A_rows[i]] += A_values[i] * B[A_cols[i]];
     }
 }
 
-void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_values, const float *B, float *C) {
-    int i;
-    // Idear: spread work out over num of threads and then merge them later.
-    // It means to malloc a new array
-    int tNum = omp_get_max_threads();
-    int amount_of_loop = floor(nz / tNum);
-    int lastSize = nz - (amount_of_loop * tNum);
-    float newC[] = {};
-
-    #pragma omp parallel 
-    {
-        float *fakeC;
-        bool isLast = (omp_get_thread_num() == tNum);
-        if (isLast) {
-            fakeC = (float *)calloc(lastSize, sizeof(float));
-        } else {
-            fakeC = (float *)calloc(amount_of_loop, sizeof(float));
-        }
-        int startVal = amount_of_loop * omp_get_thread_num();
-        int endVal = amount_of_loop * ( 1 + omp_get_thread_num()) ? !isLast : lastSize;
-        for (i = startVal; i < endVal; i++) {
-	        fakeC[A_rows[i]] += A_values[i] * B[A_cols[i]];
-        }
-        //todo: merge back
-
-    }
+void coo_spmv_par(int nz, const int *A_rows, const int *A_cols, const float *A_values, const float *B, float *C, int max_threads) {
+    // int i;
+    int *sCols;
+    // // #pragma omp parallel for schedule(dynamic) 
+    // int *howMany = (int *) calloc(nz, sizeof(int));
+    // #pragma omp parallel for reduction
+    // for (int b=0;b<nz;b++) {
+    //     howMany[A_rows[b]]++;
+    // }
+    // #pragma omp parallel for
+    // for (i = 0; i < nz; i++) {
+    //     printf("A_rows %d -- A_cols %d, i :: %d\n", A_rows[i], A_cols[i], i);
+    //     // #pragma omp atomic
+    //     float tmp = 0.0f;
+    //     // if (howMany[A_rows[i]] == 2) {
+    //     //     C[A_rows[i]] += A_values[i] * B[A_cols[i]] + A_values[i + 1] * B[A_cols[i + 1]];
+    //     // } else {
+    //     if (howMany[A_rows[i]] == 1) {
+    //         #pragma omp atomic
+    //         C[A_rows[i]] += A_values[i] * B[A_cols[i]];
+    //         continue;
+    //     }
+    //     for (int p = 0; p < howMany[A_rows[i]]; p++) {
+    //         tmp += A_values[i + p] * B[A_cols[i + p]];
+    //     }
+    //     #pragma omp atomic
+    //     C[A_rows[i]] += tmp;
+        
+    //     // }
+	    
+        
+    // }
     
 }
 
