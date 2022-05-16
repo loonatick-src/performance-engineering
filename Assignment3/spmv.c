@@ -31,7 +31,7 @@
 
 #define threadNum 8
 
-#define REP 1
+#define REP 100
 
 
 /* 
@@ -425,11 +425,11 @@ int main (int argc, char** argv) {
   for (r=0; r<REP; r++) {
     /* Call the SpMV kernel. */
     #ifdef CSR
-      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C, max_threads); 
+      csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
     #elif CSC
-      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C, max_threads);
+      csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
     #elif COO
-        coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C, max_threads); 
+        coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
     #else 
       spmv(m,n,A,B,C);
     #endif
@@ -443,19 +443,19 @@ int main (int argc, char** argv) {
     {
       #ifdef CSR
         #ifdef PARALLEL
-          csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C, max_threads); 
+          csr_spmv_par(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
         #else
           csr_spmv(m,sA_rows, sA_cols_idx, sA_vals, B, C); 
         #endif
       #elif CSC
         #ifdef PARALLEL
-          csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C, max_threads);
+          csc_spmv_par(n,sA_cols, sA_rows_idx, sA_vals, B, C);
         #else
           csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
         #endif
       #elif COO
         #ifdef PARALLEL
-          coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C, max_threads); 
+          coo_spmv_par(nzA, sA_rows, sA_cols, sA_vals, B, C); 
         #else
           coo_spmv(nzA, sA_rows, sA_cols, sA_vals, B, C); 
         #endif
@@ -498,6 +498,20 @@ int main (int argc, char** argv) {
 // write_sparse(fc,n,m,C);
  write_vector(fc,m,C);
  fclose(fc);  
+
+#ifdef CSR
+ free(sA_vals);
+ free(sA_rows);
+ free(sA_cols_idx);
+#elif CSC
+ free(sA_vals);
+ free(sA_cols);
+ free(sA_rows_idx);
+#elif COO
+ free(sA_vals);
+ free(sA_cols);
+ free(sA_rows);
+#endif
 
  free(A);
  free(B); 

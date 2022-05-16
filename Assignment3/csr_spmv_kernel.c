@@ -30,12 +30,12 @@ void csr_spmv(int m, const int *A_rows, const int *A_cols_idx, const float *A_va
     }
 }
 
-void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *A_values, const float *B, float *C, int max_threads) {
+void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *A_values, const float *B, float *C) {
     int i;
-    #pragma omp parallel for schedule(static)    
-    for (i = 0; i < m; ++i) {
+    #pragma omp parallel for schedule(guided)
+    for (i = 0; i < m; i++) {
         float tmp = 0.0f;
-        for (int j =  A_rows[i]; j <  A_rows[i + 1]; ++j) {
+        for (int j =  A_rows[i]; j <  A_rows[i + 1]; j++) {
             int idx = A_cols_idx[j];
             tmp += A_values[j] * B[idx];
         }

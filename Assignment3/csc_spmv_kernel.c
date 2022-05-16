@@ -27,14 +27,13 @@ void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_va
     }
 }
 
-void csc_spmv_par(int n, const int *A_cols, const int *A_rows_idx, const float *A_values, const float *B, float *C, int max_threads) {
-    int i, j, ind;
-    float temp;
-    #pragma omp parallel for private(j, ind, temp) schedule(static)
+void csc_spmv_par(int n, const int *A_cols, const int *A_rows_idx, const float *A_values, const float *B, float *C) {
+    int i;
+    #pragma omp parallel for schedule(static)
     for (i = 0; i < n; i++) {
-        for (j = A_cols[i]; j < A_cols[i + 1]; j++) {
-            ind = A_rows_idx[j];
-            temp = A_values[j] * B[i];
+        for (int j = A_cols[i]; j < A_cols[i + 1]; j++) {
+            int ind = A_rows_idx[j];
+            float temp = A_values[j] * B[i];
             #pragma omp atomic
             C[ind] += temp;
              
