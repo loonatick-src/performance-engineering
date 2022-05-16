@@ -31,7 +31,7 @@
 
 #define threadNum 8
 
-#define REP 1000
+#define REP 1
 
 
 /* 
@@ -309,6 +309,7 @@ int main (int argc, char** argv) {
 
 #ifdef PARALLEL
   int max_threads = omp_get_max_threads();
+  printf("mx%d\n", max_threads);
 #endif
 
  struct timespec before, halfway, after;
@@ -396,12 +397,13 @@ int main (int argc, char** argv) {
  if (C==NULL) {printf("Out of memory C! \n"); exit(1);}
 
 //naive implementation 
-#ifdef TIMING
-  clock_gettime(CLOCK_MONOTONIC, &before); 
-#endif
+
 
 #ifdef COMPARISON
-  
+  #ifdef TIMING
+  clock_gettime(CLOCK_MONOTONIC, &before); 
+  #endif
+
   for (r=0; r<REP; r++) {
     /* Call the SpMV kernel. */
     #ifdef CSR
@@ -434,6 +436,9 @@ int main (int argc, char** argv) {
   }
   
 #else
+  #ifdef TIMING
+    clock_gettime(CLOCK_MONOTONIC, &before); 
+  #endif
     for (r=0; r<REP; r++) 
     {
       #ifdef CSR
