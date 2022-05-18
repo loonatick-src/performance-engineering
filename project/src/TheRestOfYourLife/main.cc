@@ -42,13 +42,11 @@ color ray_color(
     int depth
 ) {
     hit_record rec;
-    // debug("Reached depth %d in thread %d", depth, omp_get_thread_num());
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if (depth <= 0)
         return color(0,0,0);
 
     // If the ray hits nothing, return the background color.
-    // auto thread_id = omp_get_thread_num();
     if (!world->hit(r, 0.001, infinity, rec)) {
         return background;
     }
@@ -62,7 +60,6 @@ color ray_color(
         return srec.attenuation
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
     }
-    return color(0,0,0);
 
     auto light_ptr = make_unique<hittable_pdf>(lights, rec.p);
     mixture_pdf p(light_ptr.get(), srec.pdf_ptr.get());
