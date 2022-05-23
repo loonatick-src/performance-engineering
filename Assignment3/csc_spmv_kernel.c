@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
+#include <time.h>
 /*
  * m = number of cols   
  * A_cols = col pointers, m+1 of them, each element with the start of the nonZero's in the columns array 
@@ -29,14 +30,26 @@ void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_va
 
 void csc_spmv_par(int n, const int *A_cols, const int *A_rows_idx, const float *A_values, const float *B, float *C) {
     int i;
-    #pragma omp parallel for schedule(static)
+    double tmp = 0.0;
+    int cc = 0;
+    #pragma omp parallel for
     for (i = 0; i < n; i++) {
+	float b_value = B[i];
         for (int j = A_cols[i]; j < A_cols[i + 1]; j++) {
             int ind = A_rows_idx[j];
-            float temp = A_values[j] * B[i];
+            float temp = A_values[j] * b_value;
+            struct timespec before ={0,0}, after={0,0};
+            clock_gettime(CLOCK_MONOTONIC, &before); 
             #pragma omp atomic
             C[ind] += temp;
+            clock_gettime(CLOCK_MONOTONIC, &after); 
+            double  total_run = (((double)after.tv_sec*1.0e9 + after.tv_nsec) - ((double)before.tv_sec*1.0e9 + before.tv_nsec));
+            #pragma omp atomic
+            tmp += total_run;
+            #pragma omp atomic
+            cc++;
              
 	    }
     }
+    printf("Reference code: %f nanoseconds \n", tmp/cc);
 }
