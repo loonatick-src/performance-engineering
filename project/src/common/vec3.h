@@ -66,7 +66,6 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            auto thread_id = omp_get_thread_num();
             auto seedp = &seed;
             return vec3(random_double_r(seedp), random_double_r(seedp), random_double_r(seedp));
         }
@@ -179,12 +178,11 @@ inline vec3 random_in_unit_sphere() {
     }
 }
 
-
-// NOT REENTRANT
-inline vec3 random_in_unit_sphere2() {
+inline vec3 random_in_unit_sphere_v2() {
     auto theta = random_double(0, M_PI);
     auto phi = random_double(0, 2.0l*M_PI);
-    return vec3::unit_from_spherical(theta, phi);
+    auto r = random_double();
+    return vec3::from_spherical(r, theta, phi);
 }
 
 
