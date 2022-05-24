@@ -200,6 +200,4 @@ int main(int argc, char *argv[]) {
     }
     std::cerr << "\nDone.\n";
     return 0;
-    error:
-    std::cerr << "Get fucked\n";
 }
