@@ -12,8 +12,12 @@ all: $(TARGET)
 release: CFLAGS += -DNDEBUG
 release: $(TARGET)
 
-profile: CFLAGS = -pg $(CFLAGS_INIT)
-profile: release
+profile_gprof: CFLAGS += -pg
+profile_gprof: release
+
+profile_perf: CFLAGS += -fno-omit-frame-pointer -mno-omit-frame-pointer
+profile_perf: release
+
 
 debug: CFLAGS = -g -Wall -Wextra -pedantic -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
 debug: $(TARGET)
