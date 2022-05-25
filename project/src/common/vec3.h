@@ -11,6 +11,8 @@
 // along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //==============================================================================================
 
+#include "rtweekend.h"
+
 #include <cmath>
 #include <iostream>
 #include <omp.h>
@@ -161,8 +163,7 @@ inline vec3 unit_vector(vec3 v) {
 }
 
 inline vec3 random_in_unit_disk() {
-    auto thread_id = omp_get_thread_num();
-    unsigned int *seedp = &seed;
+    auto seedp = &seed;
     while (true) {
         auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
         if (p.length_squared() >= 1) continue;
@@ -178,6 +179,21 @@ inline vec3 random_in_unit_sphere() {
     }
 }
 
+inline vec3 random_in_unit_sphere_v4() {
+    while (true) {
+        auto seedp = &seed;
+        const auto x = random_double_r(-1.0l, 1.0l, seedp);
+        auto normsq = x*x;
+        const auto y = random_double_r(-1.0l, 1.0l, seedp);
+        normsq += y*y;
+        const auto z = random_double_r(-1.0l, 1.0l, seedp);
+        normsq += z*z;
+        if (normsq >= 1.0l) continue;
+        // construct vec3 only on acceptance
+        return vec3(x, y, z);
+    }
+}
+
 inline vec3 random_in_unit_sphere_v2() {
     auto theta = random_double(0, M_PI);
     auto phi = random_double(0, 2.0l*M_PI);
@@ -185,6 +201,16 @@ inline vec3 random_in_unit_sphere_v2() {
     return vec3::from_spherical(r, theta, phi);
 }
 
+inline vec3 random_in_unit_sphere_v3() {
+    auto seedp = &seed;
+    auto x = random_double_r(seedp);
+    auto ylim_sq = 1.0l - x*x;
+    auto ylim = sqrt(ylim_sq);
+    auto y = random_double_r(-ylim, ylim, seedp);
+    auto zlim = sqrt(ylim_sq - y*y);
+    auto z = random_double_r(-zlim, zlim, seedp);
+    return vec3(x, y, z);
+}
 
 inline vec3 random_unit_vector() {
     return unit_vector(random_in_unit_sphere());
@@ -197,11 +223,6 @@ inline vec3 random_in_hemisphere(const vec3& normal) {
     else
         return -in_unit_sphere;
 }
-
-inline vec3 random_in_hemisphere2(const vec3& normal) {
-
-}
-
 
 inline vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2*dot(v,n)*n;
