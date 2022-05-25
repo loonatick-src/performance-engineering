@@ -62,7 +62,6 @@ color ray_color(
         return srec.attenuation
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
     }
-    return color(0,0,0);
 
     auto light_ptr = make_unique<hittable_pdf>(lights, rec.p);
     mixture_pdf p(light_ptr.get(), srec.pdf_ptr.get());
@@ -119,7 +118,6 @@ int main(int argc, char *argv[]) {
     image_t output_image(boost::extents[image_height][image_width][3]);
 
     // World
-
     auto world = cornell_box();
     auto lights = new hittable_list();
     lights->add(new xz_rect(213, 343, 227, 332, 554, new material()));
@@ -129,7 +127,6 @@ int main(int argc, char *argv[]) {
     color background(0,0,0);
 
     // Camera
-
     point3 lookfrom(278, 278, -800);
     point3 lookat(278, 278, 0);
     vec3 vup(0, 1, 0);
@@ -140,6 +137,79 @@ int main(int argc, char *argv[]) {
     auto time1 = 1.0;
 
     auto cam = new camera(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus, time0, time1);
+
+
+#ifdef PROFILE
+    {
+      material* aluminum = new metal(color(0.8, 0.85, 0.88), 0.0);
+      hittable* ob = new obox(point3(0,0,0), point3(165,330,165), aluminum);
+      hittable* nb = new box(point3(0,0,0), point3(165,330,165), aluminum);
+      
+      // first generate a series of hit and miss rays
+      hit_record rec;
+      std::vector<ray> hit;
+      std::vector<ray> miss;
+      std::vector<ray> dubious;
+      for (int j = 0; j < 200; ++j) {
+          for (int i = 0; i < 200; ++i) {
+              for (int s = 0; s < samples_per_pixel; ++s) {
+                  auto u = (i + 0.0) / (image_width-1);
+                  auto v = (j + 0.0) / (image_height-1);
+                  ray r = cam->get_ray_r(u, v);
+                  bool nh = nb->hit(r, 0.001, infinity, rec);
+                  bool oh = ob->hit(r, 0.001, infinity, rec);
+                  if (nh && oh) {
+                    hit.push_back(r);
+                  } else if (!nh && !oh) {
+                    miss.push_back(r);
+                  } else {
+                    dubious.push_back(r);
+                  }
+              }
+          }
+      }
+      
+      
+      // new box implementation
+      {
+        auto start_time = steady_clock::now();
+        for (auto r : hit) {
+          nb->hit(r, 0.001, infinity, rec);
+        }
+        auto end_time = steady_clock::now();
+        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
+        std::cerr << "box hit took " << elapsed_seconds << " runs(" << hit.size() << ")\n";
+      }{
+        auto start_time = steady_clock::now();
+        for (auto r : miss) {
+          nb->hit(r, 0.001, infinity, rec);
+        }
+        auto end_time = steady_clock::now();
+        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
+        std::cerr << "box miss took " << elapsed_seconds << " runs(" << miss.size() << ")\n";
+      }
+      
+      // old box implementation
+      {
+        auto start_time = steady_clock::now();
+        for (auto r : hit) {
+          ob->hit(r, 0.001, infinity, rec);
+        }
+        auto end_time = steady_clock::now();
+        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
+        std::cerr << "obox hit took " << elapsed_seconds << " runs(" << hit.size() << ")\n";
+      }{
+        auto start_time = steady_clock::now();
+        for (auto r : miss) {
+          ob->hit(r, 0.001, infinity, rec);
+        }
+        auto end_time = steady_clock::now();
+        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
+        std::cerr << "obox miss took " << elapsed_seconds << " runs(" << miss.size() << ")\n";
+      }
+    }
+#endif
+
 
     // Render
 
