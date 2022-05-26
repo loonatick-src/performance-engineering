@@ -41,8 +41,23 @@ long timer_end(struct timespec start_time){
     return diffInNanos;
 }
 
+void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *A_values, const float *B, float *C) {
+    int i;
+    #pragma omp parallel for
+    for (i = 0; i < m; i++) {
+        float tmp = 0.0f;
+        for (int j =  A_rows[i]; j <  A_rows[i + 1]; j++) {
+            int idx = A_cols_idx[j];
+            tmp += A_values[j] * B[idx];
+        }
+        C[i] = tmp;
+    }
+}
+
 void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_values, const float *B, float *C) {
     int i;
+    printf("%d\n", n);
+    int cc = 0;
     #pragma omp parallel for
     for (i = 0; i < n; i++) {
         float b_value = B[i];
@@ -50,9 +65,12 @@ void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_va
             int ind = A_rows_idx[j];
             float temp = A_values[j] * b_value;
             #pragma omp atomic
+            cc++;
+            #pragma omp atomic
             C[ind] += temp;
 	    }
     }
+    printf("CC: %d\n", cc);
 }
 
 void print_mat(int m, int n, float *A) {
@@ -70,7 +88,7 @@ void generate_mat(int m, int n, float *A, int nz) {
   int i;
 
   for (i=0; i<(m*n); i++) 
-	A[i] = i ? i%nz == 0 : 0.0; //i/10; 
+    A[i] = i ? i%10 == 0 : 0.0; //i/10; 
       	
 }
 
@@ -80,17 +98,23 @@ int main (int argc, char** argv) {
 
     float *sA_vals;
     int *sA_cols, *sA_rows_idx;
-
-    omp_set_num_threads(16);
-    srand(time(NULL));
-
-
-    m = rand() % 1024;
-    n = rand() % 1024;
-    nzA=m*n/10;
+  int nums[] = {15, 128,256,384,512,640,768,896,1024,1152,1280,1408,1536,1664,1792,
+  1920,2048,2176,2304,2432,2560,2688,2816,2944,3072,3200,3328,3456,
+  3584,3712,3840,3968,4096,4224,4352,4480,4608,4736,4864,4992,5120,
+  5248,5376,5504,5632,5760,5888,6016,6144,6272,6400,6528,6656,6784,
+  6912,7040,7168,7296,7424,7552,7680,7808,7936,8064,8192,8320,8448,
+  8576,8704,8832,8960,9088,9216,9344,9472,9600,9728,9856,9984};
+  omp_set_num_threads(16);
+   for (int i = 0; i < 5; i++) {
+      for (int j = 0; j < 5; j++) {
+        m = nums[i];
+        n = nums[j];
+        nzA=m*n/10;
+        printf("%d\n", nzA);
 
     A = (float *)calloc(m*n,sizeof(float));
     generate_mat(m,n,A,nzA);
+    
 
     sA_cols = (int *)calloc(n+1,sizeof(int));
     sA_rows_idx = (int *)calloc(nzA,sizeof(int));
@@ -104,16 +128,16 @@ int main (int argc, char** argv) {
 
     int r = 0;
     // printf("Mark1\n");
-    struct timespec vartime = timer_start();
+    struct timespec before ={0,0}, after={0,0};
+    clock_gettime(CLOCK_MONOTONIC, &before); 
 
     for (r=0; r<REP; r++) {
         csc_spmv(n,sA_cols, sA_rows_idx, sA_vals, B, C);
     }
-    
+    clock_gettime(CLOCK_MONOTONIC, &after);
+    double  time_elapsed_nanos = (((double)after.tv_sec*1.0e9 + after.tv_nsec) - ((double)before.tv_sec*1.0e9 + before.tv_nsec))/REP;
 
-    long time_elapsed_nanos = timer_end(vartime); 
-
-    printf("Time taken by kernel for matrixes of %d by %d and Non-zero: %d: %ld\n", m, n, nzA, time_elapsed_nanos/10); 
+    printf("%d;%d;%d;%lf\n", m, n, nzA, time_elapsed_nanos); 
 
     free(sA_vals);
     free(sA_cols);
@@ -122,5 +146,9 @@ int main (int argc, char** argv) {
     free(B);
     free(C);
 
+     
+    }
+   }
+    
     return 0;
 }
