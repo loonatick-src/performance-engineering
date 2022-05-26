@@ -56,7 +56,7 @@ void csr_spmv_par(int m, const int *A_rows, const int *A_cols_idx, const float *
 
 void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_values, const float *B, float *C) {
     int i;
-    printf("%d\n", n);
+    // printf("%d\n", n);
     int cc = 0;
     #pragma omp parallel for
     for (i = 0; i < n; i++) {
@@ -64,13 +64,13 @@ void csc_spmv(int n, const int *A_cols, const int *A_rows_idx, const float *A_va
         for (int j = A_cols[i]; j < A_cols[i + 1]; j++) {
             int ind = A_rows_idx[j];
             float temp = A_values[j] * b_value;
-            #pragma omp atomic
-            cc++;
+            // #pragma omp atomic
+            // cc++;
             #pragma omp atomic
             C[ind] += temp;
 	    }
     }
-    printf("CC: %d\n", cc);
+    // printf("CC: %d\n", cc);
 }
 
 void print_mat(int m, int n, float *A) {
@@ -110,7 +110,7 @@ int main (int argc, char** argv) {
         m = nums[i];
         n = nums[j];
         nzA=m*n/10;
-        printf("%d\n", nzA);
+        // printf("%d\n", nzA);
 
     A = (float *)calloc(m*n,sizeof(float));
     generate_mat(m,n,A,nzA);
