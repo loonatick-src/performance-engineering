@@ -1,3 +1,18 @@
+def originalScaling():
+  sizes = [128, 256, 512, 1024, 2048]
+  sequential = [4.0751, 8.02996, 15.0113, 29.9553, 58.4266]
+
+  import matplotlib.pyplot as plt
+  import numpy as np
+
+  plt.plot(sizes, sequential, label="Sequential")
+  plt.xticks(sizes, sizes)
+  plt.ylabel('Time in seconds')
+  plt.xlabel('Output image height')
+  plt.legend()
+  plt.show()
+
+
 def beforeRandAndShared():
   sizes = [128, 256, 512, 1024, 2048]
   sequential = [4.39333, 10.1078, 16.1195, 32.6979, 61.5664]
@@ -47,3 +62,11 @@ def sharedPtr():
   plt.xlabel('Number of threads')
   plt.legend()
   plt.show()
+
+def boxIntersectionBars():
+  """
+     box hit  took 52.3946 runs(2147483647)
+    obox hit  took 89.5574 runs(2147483647)
+     box miss took 36.0235 runs(2147483647)
+    obox miss took 56.6143 runs(2147483647)
+  """
