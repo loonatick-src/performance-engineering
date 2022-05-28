@@ -166,13 +166,12 @@ inline vec3 unit_vector(vec3 v) {
 }
 
 inline vec3 random_in_unit_disk() {
-    auto thread_id = omp_get_thread_num();
-    unsigned int *seedp = &seed;
-    while (true) {
-        auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
-        if (p.length_squared() >= 1) continue;
-        return p;
-    }
+  auto seedp = &seed;
+  auto x = random_double_r(seedp);
+  auto ylim_sq = 1.0l - x*x;
+  auto ylim = sqrt(ylim_sq);
+  auto y = random_double_r(-ylim, ylim, seedp);
+  return vec3(x, y, 0);
 }
 
 
