@@ -175,12 +175,17 @@ inline vec3 random_in_unit_disk() {
     }
 }
 
+
+
 inline vec3 random_in_unit_sphere() {
-    while (true) {
-        auto p = vec3::random(-1,1);
-        if (p.length_squared() >= 1) continue;
-        return p;
-    }
+    auto seedp = &seed;
+    auto x = random_double_r(seedp);
+    auto ylim_sq = 1.0l - x*x;
+    auto ylim = sqrt(ylim_sq);
+    auto y = random_double_r(-ylim, ylim, seedp);
+    auto zlim = sqrt(ylim_sq - y*y);
+    auto z = random_double_r(-zlim, zlim, seedp);
+    return vec3(x, y, z);
 }
 
 
