@@ -17,10 +17,12 @@
 #include <iostream>
 #include <omp.h>
 
-using std::sqrt;
+using std::cbrt;
 using std::fabs;
+using std::sqrt;
 
 extern thread_local unsigned int seed;
+
 
 class vec3 {
     public:
@@ -179,25 +181,11 @@ inline vec3 random_in_unit_sphere() {
     }
 }
 
-inline vec3 random_in_unit_sphere_v4() {
-    while (true) {
-        auto seedp = &seed;
-        const auto x = random_double_r(-1.0l, 1.0l, seedp);
-        auto normsq = x*x;
-        const auto y = random_double_r(-1.0l, 1.0l, seedp);
-        normsq += y*y;
-        const auto z = random_double_r(-1.0l, 1.0l, seedp);
-        normsq += z*z;
-        if (normsq >= 1.0l) continue;
-        // construct vec3 only on acceptance
-        return vec3(x, y, z);
-    }
-}
-
 inline vec3 random_in_unit_sphere_v2() {
-    auto theta = random_double(0, M_PI);
-    auto phi = random_double(0, 2.0l*M_PI);
-    auto r = random_double();
+    auto seedp = &seed;
+    auto theta = random_double_r(0, M_PI, seedp);
+    auto phi = random_double_r(0, 2.0l*M_PI, seedp);
+    auto r = cbrt(random_double_r(seedp));
     return vec3::from_spherical(r, theta, phi);
 }
 
