@@ -33,7 +33,7 @@ $(TARGET): build src/TheRestOfYourLife/main.cc src/TheRestOfYourLife/*.h src/com
 bench: $(TARGET_BENCH)
 
 build/%_bench: bench2/%_bench.cpp build
-	$(CC) -g $(CFLAGS) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer $< -o $@ -lbenchmark -lpfm
+	$(CC) -g $(CFLAGS) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer $< -o $@ #-lbenchmark -lpfm
 
 build:
 	@mkdir -p build

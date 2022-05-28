@@ -1,7 +1,6 @@
 #include "rtweekend.h"
 #include "vec3.h"
 
-#include <benchmark/benchmark.h>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -11,7 +10,7 @@
 
 
 
-constexpr size_t PE_COUNT = 1e8;
+constexpr size_t PE_COUNT = 5e8;
 
 #define PE_LOOP for (size_t i = 0; i < count; i++)
 
@@ -220,8 +219,17 @@ std::vector<double> BM_Trig_dup(size_t count) {
     return t_iter;
 }
 
+double BM_Loop(size_t count) {
+    START_TIMER;
+    for (size_t i = 0; i < count; i++) {
+        clobber();
+    }
+    END_TIMER;
+    return elapsed_seconds.count();
+}
+
 void print_format_data(double mean, double stddev, const std::string &name) {
-    std::cerr << name << "    " << mean * 1.0e9l << "seconds +- " << stddev * 1.0e9l << '\n';
+    std::cerr << name << "    " << mean * 1.0e9l << " +- " << stddev * 1.0e9l << " ns\n";
     return;
 }
 
@@ -237,17 +245,19 @@ int main(void) {
     PE_BENCH(BM_Sqrt, name);
     bench_log(name);
     PE_BENCH(BM_Sqrt_dup, name);
+
     name = std::string("2-norm-sq");
     bench_log(name);
     PE_BENCH(BM_2Normsq, name);
     bench_log(name);
     PE_BENCH(BM_2Normsq_dup, name);
-    bench_log(name);
+
     name = std::string("trig");
     bench_log(name);
     PE_BENCH(BM_Trig, name);
     bench_log(name);
     PE_BENCH(BM_Trig_dup, name);
     
+    std::cerr << "Raw loop timer" << BM_Loop(PE_COUNT) * 1.0e9 / PE_COUNT;
     return 0;
 }
