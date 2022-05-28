@@ -3,8 +3,8 @@ INCLUDE = -Isrc/TheRestOfYourLife/ -Isrc/common/ -Isrc/common/extra/
 CFLAGS = -O3 -Wall -Wextra -pedantic  -fopenmp -fwrapv $(INCLUDE) $(OPTFLAGS)
 CFLAGS_INIT = -fopenmp -Wall -Wextra -pedantic -fwrapv $(INCLUDE) $(OPTFLAGS)
 
-SRC_BENCH = $(wildcard bench/*.cpp)
-TARGET_BENCH = $(patsubst bench/%.cpp, build/%, $(SRC_BENCH))
+SRC_BENCH = $(wildcard bench2/*.cpp)
+TARGET_BENCH = $(patsubst bench2/%.cpp, build/%, $(SRC_BENCH))
 
 MAIN = src/TheRestOfYourLife/main.cc
 TARGET = build/theRestOfYourLife
@@ -32,7 +32,7 @@ $(TARGET): build src/TheRestOfYourLife/main.cc src/TheRestOfYourLife/*.h src/com
 
 bench: $(TARGET_BENCH)
 
-build/%_bench: bench/%_bench.cpp build
+build/%_bench: bench2/%_bench.cpp build
 	$(CC) -g $(CFLAGS) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer $< -o $@ -lbenchmark -lpfm
 
 build:
