@@ -103,6 +103,17 @@ hittable_list* cornell_box() {
     return objects;
 }
 
+void measure(int runs, ray r, hittable* hittable, const char* impl, const char* ray_type) {
+  hit_record rec;
+  auto start_time = steady_clock::now();
+  for (int x = 0; x < runs; x++) {
+    hittable->hit(r, 0.001, infinity, rec);
+  }
+  auto end_time = steady_clock::now();
+  double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
+  std::cerr << impl << " " << ray_type << " took " << elapsed_seconds << " runs(" << runs << ")\n";
+}
+
 
 int main(int argc, char *argv[]) {
     // Image
@@ -170,43 +181,19 @@ int main(int argc, char *argv[]) {
       }
       
       
-      // new box implementation
-      {
-        auto start_time = steady_clock::now();
-        for (auto r : hit) {
-          nb->hit(r, 0.001, infinity, rec);
-        }
-        auto end_time = steady_clock::now();
-        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
-        std::cerr << "box hit took " << elapsed_seconds << " runs(" << hit.size() << ")\n";
-      }{
-        auto start_time = steady_clock::now();
-        for (auto r : miss) {
-          nb->hit(r, 0.001, infinity, rec);
-        }
-        auto end_time = steady_clock::now();
-        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
-        std::cerr << "box miss took " << elapsed_seconds << " runs(" << miss.size() << ")\n";
-      }
+      std::cerr << "hit size = " << hit.size() << "\n";
+      std::cerr << "miss size = " << miss.size() << "\n";
+      std::cerr << "dubious size = " << dubious.size() << "\n";
+      auto runs = 2147483647;
+      auto r_hit = hit[100];
+      auto r_miss = miss[100];
       
-      // old box implementation
-      {
-        auto start_time = steady_clock::now();
-        for (auto r : hit) {
-          ob->hit(r, 0.001, infinity, rec);
-        }
-        auto end_time = steady_clock::now();
-        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
-        std::cerr << "obox hit took " << elapsed_seconds << " runs(" << hit.size() << ")\n";
-      }{
-        auto start_time = steady_clock::now();
-        for (auto r : miss) {
-          ob->hit(r, 0.001, infinity, rec);
-        }
-        auto end_time = steady_clock::now();
-        double elapsed_seconds = std::chrono::duration_cast<seconds>(end_time - start_time).count();
-        std::cerr << "obox miss took " << elapsed_seconds << " runs(" << miss.size() << ")\n";
-      }
+      // measurements
+      measure(runs, r_hit,  nb, " box", "hit ");
+      measure(runs, r_hit,  ob, "obox", "hit ");
+
+      measure(runs, r_miss, nb, " box", "miss");
+      measure(runs, r_miss, ob, "obox", "miss");
     }
 #endif
 

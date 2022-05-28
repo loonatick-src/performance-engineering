@@ -54,7 +54,9 @@ bool obox::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
 }
 
 
-
+/**
+ * algorithm is based on https://iquilezles.org/articles/boxfunctions/
+ */
 class box : public hittable  {
     public:
         box() {}
