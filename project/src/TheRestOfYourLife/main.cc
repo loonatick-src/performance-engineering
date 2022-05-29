@@ -23,6 +23,7 @@
 #include <iostream>
 #include <chrono>
 #include <boost/multi_array.hpp>
+#include <omp.h>
 
 using std::chrono::steady_clock;
 using seconds = std::chrono::duration<double, std::ratio< 1 > >;
@@ -140,6 +141,7 @@ int main(int argc, char *argv[]) {
 
     // Render
     auto start_time = steady_clock::now();
+    omp_set_num_threads(thread_count);
     # pragma omp parallel
     {
         # pragma omp for collapse(2) schedule(static)
