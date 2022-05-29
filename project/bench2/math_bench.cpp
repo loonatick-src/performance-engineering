@@ -102,12 +102,14 @@ static void clobber() { asm volatile("" : : : "memory"); }
 std::vector<double> BM_Sqrt(size_t count) {
     auto seedp = &seed;
     std::vector<double> t_iter;
-    auto arg = random_double_r(seedp);
     double x;
     for (size_t i = 0; i < count; i++) {
+        x = random_double_r(1.0e3, 1.0e4, seedp);
         START_TIMER;
-        REPEAT_4(x = sqrt(arg));
+        // Bypass ILP
+        REPEAT_4(x = sqrt(x));
         END_TIMER;
+        clobber();
         t_iter.push_back(elapsed_seconds.count()/4.0l);
     }
     return t_iter;
@@ -116,12 +118,14 @@ std::vector<double> BM_Sqrt(size_t count) {
 std::vector<double> BM_Sqrt_dup(size_t count) {
     auto seedp = &seed;
     std::vector<double> t_iter;
-    auto arg = random_double_r(seedp);
     double x;
-    PE_LOOP {
+    for (size_t i = 0; i < count; i++) {
+        x = random_double_r(1.0e3, 1.0e4, seedp);
         START_TIMER;
-        REPEAT_4(x = sqrt(arg));
+        // Bypass ILP
+        REPEAT_4(x = sqrt(x));
         END_TIMER;
+        clobber();
         t_iter.push_back(elapsed_seconds.count()/4.0l);
     }
     return t_iter;
@@ -130,11 +134,13 @@ std::vector<double> BM_Sqrt_dup(size_t count) {
 std::vector<double> BM_Sqrt_rand(size_t count) {
     auto seedp = &seed;
     std::vector<double> t_iter;
+    double x, arg;
     PE_LOOP {
-        const auto arg = random_double_r(10.0l, 100.0l, seedp);
+        arg = random_double_r(10.0l, 100.0l, seedp);
         START_TIMER;
-        auto x = sqrt(arg);
+        x = sqrt(arg);
         END_TIMER;
+        clobber();
         t_iter.push_back(elapsed_seconds.count());
     }
 
