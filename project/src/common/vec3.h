@@ -13,12 +13,9 @@
 
 #include <cmath>
 #include <iostream>
-#include <omp.h>
 
 using std::sqrt;
 using std::fabs;
-
-extern thread_local unsigned int seed;
 
 class vec3 {
     public:
@@ -66,42 +63,11 @@ class vec3 {
         }
 
         inline static vec3 random() {
-            auto seedp = &seed;
-            return vec3(random_double_r(seedp), random_double_r(seedp), random_double_r(seedp));
+            return vec3(random_double(), random_double(), random_double());
         }
 
         inline static vec3 random(double min, double max) {
-            unsigned int *seedp = &seed;
-            return vec3(random_double_r(min,max,seedp), random_double_r(min,max,seedp), random_double_r(min,max, seedp));
-        }
-
-        // construct vector from spherical coordinates
-        // theta: azimuth (angle with +ve z-axis)
-        // phi: polar (angle of projection on x-y plane with +ve x-axis)
-        inline static vec3 from_spherical(double r, double theta, double phi) {
-            auto sin_theta = sin(theta);
-            auto cos_theta = cos(theta);
-            auto cos_phi = cos(phi);
-            auto sin_phi = sin(phi);
-            auto r_sin_theta = r * sin_theta;
-            auto x = r_sin_theta * cos_phi;
-            auto y = r_sin_theta * sin_phi;
-            auto z = r * cos_theta;
-            return vec3(x, y, z);
-        }
-
-        // construct unit vector from spherical coordinates
-        // theta: azimuth (angle with +ve z-axis)
-        // phi: polar (angle of projection on x-y plane with +ve x-axis)
-        inline static vec3 unit_from_spherical(double theta, double phi) {
-            auto sin_theta = sin(theta);
-            auto cos_theta = cos(theta);
-            auto cos_phi = cos(phi);
-            auto sin_phi = sin(phi);
-            auto x = sin_theta * cos_phi;
-            auto y = sin_theta * sin_phi;
-            auto z = cos_theta;
-            return vec3(x, y, z);
+            return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
         }
 
     public:
@@ -161,9 +127,8 @@ inline vec3 unit_vector(vec3 v) {
 }
 
 inline vec3 random_in_unit_disk() {
-    auto seedp = &seed;
     while (true) {
-        auto p = vec3(random_double_r(-1,1, seedp), random_double_r(-1,1, seedp), 0);
+        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
         if (p.length_squared() >= 1) continue;
         return p;
     }
@@ -176,15 +141,6 @@ inline vec3 random_in_unit_sphere() {
         return p;
     }
 }
-
-
-inline vec3 random_in_unit_sphere_new() {
-    auto seedp = &seed;
-    auto theta = random_double_r(0, M_PI, seedp);
-    auto phi = random_double_r(0, 2.0l*M_PI, seedp);
-    return vec3::unit_from_spherical(theta, phi);
-}
-
 
 inline vec3 random_unit_vector() {
     return unit_vector(random_in_unit_sphere());
