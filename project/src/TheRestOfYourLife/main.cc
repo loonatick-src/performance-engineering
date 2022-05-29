@@ -140,18 +140,22 @@ int main(int argc, char *argv[]) {
 
     // Render
     auto start_time = steady_clock::now();
-    for (int j = 0; j < image_height; ++j) {
-        for (int i = 0; i < image_width; ++i) {
-            color pixel_color(0,0,0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (image_width-1);
-                auto v = (j + random_double()) / (image_height-1);
-                ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, background, world, lights, max_depth);
+    # pragma omp parallel
+    {
+        # pragma omp for collapse(2) schedule(static)
+        for (int j = 0; j < image_height; ++j) {
+            for (int i = 0; i < image_width; ++i) {
+                color pixel_color(0,0,0);
+                for (int s = 0; s < samples_per_pixel; ++s) {
+                    auto u = (i + random_double()) / (image_width-1);
+                    auto v = (j + random_double()) / (image_height-1);
+                    ray r = cam.get_ray(u, v);
+                    pixel_color += ray_color(r, background, world, lights, max_depth);
+                }
+                output_image[j][i][0] = pixel_color.x();
+                output_image[j][i][1] = pixel_color.y();
+                output_image[j][i][2] = pixel_color.z();
             }
-            output_image[j][i][0] = pixel_color.x();
-            output_image[j][i][1] = pixel_color.y();
-            output_image[j][i][2] = pixel_color.z();
         }
     }
     auto end_time = steady_clock::now();
