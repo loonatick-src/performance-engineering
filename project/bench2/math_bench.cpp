@@ -127,6 +127,20 @@ std::vector<double> BM_Sqrt_dup(size_t count) {
     return t_iter;
 }
 
+std::vector<double> BM_Sqrt_rand(size_t count) {
+    auto seedp = &seed;
+    std::vector<double> t_iter;
+    PE_LOOP {
+        const auto arg = random_double_r(-10.0l, 10.0l, seedp);
+        START_TIMER;
+        auto x = sqrt(arg);
+        END_TIMER;
+        t_iter.push_back(elapsed_seconds.count());
+    }
+
+    return t_iter;
+}
+
 // Compiler is not optimising out the sqrt for some reason, so these are not really required
 // static void BM_SqrtManualClobber(benchmark::State& state) {
 //     double sqrt_arg;
@@ -171,6 +185,20 @@ std::vector<double> BM_2Normsq(size_t count) {
         escape(&v);
         t_iter.push_back(elapsed_seconds.count());
     }
+    return t_iter;
+}
+
+std::vector<double> BM_Sqrt_rand_dup(size_t count) {
+    auto seedp = &seed;
+    std::vector<double> t_iter;
+    PE_LOOP {
+        const auto arg = random_double_r(-10.0l, 10.0l, seedp);
+        START_TIMER;
+        auto x = sqrt(arg);
+        END_TIMER;
+        t_iter.push_back(elapsed_seconds.count());
+    }
+
     return t_iter;
 }
 
@@ -219,6 +247,48 @@ std::vector<double> BM_Trig_dup(size_t count) {
     return t_iter;
 }
 
+std::vector<double> BM_add(size_t count) {
+    std::vector<double> t_iter;
+    auto seedp = &seed;
+    double x = random_double_r(seedp);
+    double y = random_double_r(seedp);
+    PE_LOOP {
+        START_TIMER;
+        REPEAT_8(x = x + y);
+        END_TIMER;
+        t_iter.push_back(elapsed_seconds.count() / 8.0l);
+    }
+    return t_iter;
+}
+
+std::vector<double> BM_mul(size_t count) {
+    std::vector<double> t_iter;
+    auto seedp = &seed;
+    double x = random_double_r(1.0l, 10.0l, seedp);
+    double y = random_double_r(1.0l, 10.0l, seedp);
+    PE_LOOP {
+        START_TIMER;
+        REPEAT_8(x = x * y);
+        END_TIMER;
+        t_iter.push_back(elapsed_seconds.count() / 8.0l);
+    }
+    return t_iter;
+}
+
+std::vector<double> BM_mul_insitu_rng(size_t count) {
+    std::vector<double> t_iter;
+    auto seedp = &seed;
+    PE_LOOP {
+        double x = random_double_r(1.0l, 10.0l, seedp);
+        double y = random_double_r(1.0l, 10.0l, seedp);
+        START_TIMER;
+        REPEAT_8(x = x + y);
+        END_TIMER;
+        t_iter.push_back(elapsed_seconds.count() / 8.0l);
+    }
+    return t_iter;
+}
+
 double BM_Loop(size_t count) {
     START_TIMER;
     for (size_t i = 0; i < count; i++) {
@@ -257,7 +327,32 @@ int main(void) {
     PE_BENCH(BM_Trig, name);
     bench_log(name);
     PE_BENCH(BM_Trig_dup, name);
+
+    name = std::string("sqrt-rand");
+    bench_log(name);
+    PE_BENCH(BM_Sqrt_rand, name);
+    bench_log(name);
+    PE_BENCH(BM_Sqrt_rand_dup, name);
+
+    name = std::string("add");
+    bench_log(name);
+    PE_BENCH(BM_add, name);
+    bench_log(name);
+    PE_BENCH(BM_add, name);
+
+    name = std::string("mul");
+    bench_log(name);
+    PE_BENCH(BM_mul, name);
+    bench_log(name);
+    PE_BENCH(BM_mul, name);
+
+    name = std::string("mul_inloop_rng");
+    bench_log(name);
+    PE_BENCH(BM_mul_insitu_rng, name);
+    bench_log(name);
+    PE_BENCH(BM_mul_insitu_rng, name);
     
-    std::cerr << "Raw loop timer" << BM_Loop(PE_COUNT) * 1.0e9 / PE_COUNT;
+    
+    std::cerr << "Raw loop timer" << BM_Loop(PE_COUNT) * 1.0e9 / PE_COUNT << std::endl;
     return 0;
 }
