@@ -131,7 +131,7 @@ std::vector<double> BM_Sqrt_rand(size_t count) {
     auto seedp = &seed;
     std::vector<double> t_iter;
     PE_LOOP {
-        const auto arg = random_double_r(-10.0l, 10.0l, seedp);
+        const auto arg = random_double_r(10.0l, 100.0l, seedp);
         START_TIMER;
         auto x = sqrt(arg);
         END_TIMER;
@@ -192,7 +192,7 @@ std::vector<double> BM_Sqrt_rand_dup(size_t count) {
     auto seedp = &seed;
     std::vector<double> t_iter;
     PE_LOOP {
-        const auto arg = random_double_r(-10.0l, 10.0l, seedp);
+        const auto arg = random_double_r(10.0l, 100.0l, seedp);
         START_TIMER;
         auto x = sqrt(arg);
         END_TIMER;
