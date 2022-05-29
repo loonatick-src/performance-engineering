@@ -139,11 +139,13 @@ inline vec3 random_in_unit_disk() {
 }
 
 inline vec3 random_in_unit_sphere() {
-    while (true) {
-        auto p = vec3::random(-1,1);
-        if (p.length_squared() >= 1) continue;
-        return p;
-    }
+    auto x = random_double();
+    auto ylim_sq = 1.0l - x*x;
+    auto ylim = sqrt(ylim_sq);
+    auto y = random_double(-ylim, ylim);
+    auto zlim = sqrt(ylim_sq - y*y);
+    auto z = random_double(-zlim, zlim);
+    return vec3(x, y, z);
 }
 
 inline vec3 random_unit_vector() {
