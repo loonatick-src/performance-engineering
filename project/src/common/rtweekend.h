@@ -26,6 +26,9 @@ using std::sqrt;
 const double infinity = std::numeric_limits<double>::infinity();
 const double pi = 3.1415926535897932385;
 
+// Thread safe seed
+thread_local unsigned int seed;
+
 // Utility Functions
 
 inline double degrees_to_radians(double degrees) {
@@ -40,7 +43,7 @@ inline double clamp(double x, double min, double max) {
 
 inline double random_double() {
     // Returns a random real in [0,1).
-    return rand() / (RAND_MAX + 1.0);
+    return rand_r(&seed) / (RAND_MAX + 1.0);
 }
 
 inline double random_double(double min, double max) {

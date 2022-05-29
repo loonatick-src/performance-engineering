@@ -144,6 +144,9 @@ int main(int argc, char *argv[]) {
     omp_set_num_threads(thread_count);
     # pragma omp parallel
     {
+        // initialize the seed
+        seed = omp_get_thread_num();
+        
         # pragma omp for collapse(2) schedule(static)
         for (int j = 0; j < image_height; ++j) {
             for (int i = 0; i < image_width; ++i) {
