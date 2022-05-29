@@ -10,7 +10,7 @@
 
 
 
-constexpr size_t PE_COUNT = 5e7;
+constexpr size_t PE_COUNT = 5e8;
 
 #define PE_LOOP for (size_t i = 0; i < count; i++)
 
@@ -123,6 +123,19 @@ std::vector<double> BM_Vec3_dup(size_t count) {
     return t_iter;
 }
 
+std::vector<double> BM_Cbrt(size_t count) {
+    std::vector<double> t_iter; auto seedp = &seed;
+    double x;
+    PE_LOOP {
+        x = random_double_r(100.0, 1000.0, seedp);
+	START_TIMER;
+	REPEAT_4(x = cbrt(x));
+	END_TIMER;
+	t_iter.push_back(elapsed_seconds.count()/4.0l);
+    }
+    return t_iter;
+}
+
 void print_format_data(double mean, double stddev, const std::string &name) {
     std::cerr << name << "    " << mean * 1.0e9l << " +- " << stddev * 1.0e9l << " ns\n";
     return;
@@ -141,6 +154,12 @@ int main(void) {
     PE_BENCH(BM_Vec3, name);
     bench_log(name);
     PE_BENCH(BM_Vec3_dup, name);
+
+    name = std::string("cbrt");
+    bench_log(name);
+    PE_BENCH(BM_Cbrt, name);
+    bench_log(name);
+    PE_BENCH(BM_Cbrt, name);
 
     return 0;
 }    
