@@ -260,18 +260,22 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
     // reading from global memory, writing to shared memory
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
-
     T mySum = (i < n) ? g_idata[i] : 0;
 
+    // first level of reduction
     if (i + blockSize < n)
         mySum += g_idata[i+blockSize];
 
+    // store into shared memory
     sdata[tid] = mySum;
+
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
     for (unsigned int s=blockDim.x/2; s>32; s>>=1)
     {
+        // same as reduce3
         if (tid < s)
         {
             sdata[tid] = mySum = mySum + sdata[tid + s];
@@ -280,6 +284,7 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
         cg::sync(cta);
     }
 
+    // partition this thread block into chunks of 32 threads (i.e. into warps?)
     cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
     if (cta.thread_rank() < 32)
@@ -289,6 +294,7 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
         // Reduce final warp using shuffle
         for (int offset = tile32.size()/2; offset > 0; offset /= 2) 
         {
+             // warp-level primitive (for reduction?)
              mySum += tile32.shfl_down(mySum, offset);
         }
     }
