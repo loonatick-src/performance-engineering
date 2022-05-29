@@ -79,9 +79,9 @@ reduce0(T *g_idata, T *g_odata, unsigned int n)
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
     sdata[tid] = (i < n) ? g_idata[i] : 0;
 
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
@@ -100,6 +100,10 @@ reduce0(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /* This version uses contiguous threads, but its interleaved
    addressing results in many shared memory bank conflicts.
 */
@@ -114,9 +118,9 @@ reduce1(T *g_idata, T *g_odata, unsigned int n)
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
     sdata[tid] = (i < n) ? g_idata[i] : 0;
 
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
@@ -136,6 +140,11 @@ reduce1(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version uses sequential addressing -- no divergence or bank conflicts.
 */
@@ -170,6 +179,10 @@ reduce2(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version uses n/2 threads --
     it performs the first level of reduction when reading from global memory.
@@ -210,6 +223,11 @@ reduce3(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = mySum;
 }
 
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version uses the warp shuffle operation if available to reduce 
     warp synchronization. When shuffle is not available the final warp's
@@ -272,6 +290,10 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
     if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version is completely unrolled, unless warp shuffle is available, then
     shuffle is used within a loop.  It uses a template parameter to achieve
@@ -343,6 +365,10 @@ reduce5(T *g_idata, T *g_odata, unsigned int n)
     if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version adds multiple elements per thread sequentially.  This reduces the overall
     cost of the algorithm while keeping the work complexity O(n) and the step complexity O(log n).
