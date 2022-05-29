@@ -21,7 +21,7 @@ struct scatter_record {
     ray specular_ray;
     bool is_specular;
     color attenuation;
-    shared_ptr<pdf> pdf_ptr;
+    unique_ptr<pdf> pdf_ptr;
 };
 
 
@@ -49,15 +49,14 @@ class material {
 
 class lambertian : public material {
     public:
-        lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
-        lambertian(shared_ptr<texture> a) : albedo(a) {}
+        lambertian(texture* a) : albedo(a) {}
 
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, scatter_record& srec
         ) const override {
             srec.is_specular = false;
             srec.attenuation = albedo->value(rec.u, rec.v, rec.p);
-            srec.pdf_ptr = make_shared<cosine_pdf>(rec.normal);
+            srec.pdf_ptr = make_unique<cosine_pdf>(rec.normal);
             return true;
         }
 
@@ -69,7 +68,7 @@ class lambertian : public material {
         }
 
     public:
-        shared_ptr<texture> albedo;
+        texture* albedo;
 };
 
 
@@ -138,8 +137,7 @@ class dielectric : public material {
 
 class diffuse_light : public material {
     public:
-        diffuse_light(shared_ptr<texture> a) : emit(a) {}
-        diffuse_light(color c) : emit(make_shared<solid_color>(c)) {}
+        diffuse_light(texture* a) : emit(a) {}
 
         virtual color emitted(
             const ray& r_in, const hit_record& rec, double u, double v, const point3& p
@@ -150,14 +148,13 @@ class diffuse_light : public material {
         }
 
     public:
-        shared_ptr<texture> emit;
+        texture* emit;
 };
 
 
 class isotropic : public material {
     public:
-        isotropic(color c) : albedo(make_shared<solid_color>(c)) {}
-        isotropic(shared_ptr<texture> a) : albedo(a) {}
+        isotropic(texture* a) : albedo(a) {}
 
         #if 0
         // Issue #669
@@ -174,7 +171,7 @@ class isotropic : public material {
         #endif
 
     public:
-        shared_ptr<texture> albedo;
+        texture* albedo;
 };
 
 

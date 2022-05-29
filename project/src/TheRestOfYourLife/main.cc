@@ -33,8 +33,8 @@ using std::chrono::time_point;
 color ray_color(
     const ray& r,
     const color& background,
-    const hittable& world,
-    shared_ptr<hittable> lights,
+    const hittable* world,
+    const hittable* lights,
     int depth
 ) {
     hit_record rec;
@@ -44,7 +44,7 @@ color ray_color(
         return color(0,0,0);
 
     // If the ray hits nothing, return the background color.
-    if (!world.hit(r, 0.001, infinity, rec))
+    if (!world->hit(r, 0.001, infinity, rec))
         return background;
 
     scatter_record srec;
@@ -58,8 +58,8 @@ color ray_color(
              * ray_color(srec.specular_ray, background, world, lights, depth-1);
     }
 
-    auto light_ptr = make_shared<hittable_pdf>(lights, rec.p);
-    mixture_pdf p(light_ptr, srec.pdf_ptr);
+    auto light_ptr = make_unique<hittable_pdf>(lights, rec.p);
+    mixture_pdf p(light_ptr.get(), srec.pdf_ptr.get());
     ray scattered = ray(rec.p, p.generate(), r.time());
     auto pdf_val = p.value(scattered.direction());
 
@@ -70,29 +70,29 @@ color ray_color(
 }
 
 
-hittable_list cornell_box() {
-    hittable_list objects;
+hittable_list* cornell_box() {
+    auto objects = new hittable_list();
 
-    auto red   = make_shared<lambertian>(color(.65, .05, .05));
-    auto white = make_shared<lambertian>(color(.73, .73, .73));
-    auto green = make_shared<lambertian>(color(.12, .45, .15));
-    auto light = make_shared<diffuse_light>(color(15, 15, 15));
+    auto red   = new lambertian(new solid_color(.65, .05, .05));
+    auto white = new lambertian(new solid_color(.73, .73, .73));
+    auto green = new lambertian(new solid_color(.12, .45, .15));
+    auto light = new diffuse_light(new solid_color(15, 15, 15));
 
-    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
-    objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
-    objects.add(make_shared<flip_face>(make_shared<xz_rect>(213, 343, 227, 332, 554, light)));
-    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
-    objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
-    objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+    objects->add(new yz_rect(0, 555, 0, 555, 555, green));
+    objects->add(new yz_rect(0, 555, 0, 555, 0, red));
+    objects->add(new flip_face(new xz_rect(213, 343, 227, 332, 554, light)));
+    objects->add(new xz_rect(0, 555, 0, 555, 555, white));
+    objects->add(new xz_rect(0, 555, 0, 555, 0, white));
+    objects->add(new xy_rect(0, 555, 0, 555, 555, white));
 
-    shared_ptr<material> aluminum = make_shared<metal>(color(0.8, 0.85, 0.88), 0.0);
-    shared_ptr<hittable> box1 = make_shared<box>(point3(0,0,0), point3(165,330,165), aluminum);
-    box1 = make_shared<rotate_y>(box1, 15);
-    box1 = make_shared<translate>(box1, vec3(265,0,295));
-    objects.add(box1);
+    material* aluminum = new metal(color(0.8, 0.85, 0.88), 0.0);
+    hittable* box1 = new box(point3(0,0,0), point3(165,330,165), aluminum);
+    box1 = new rotate_y(box1, 15);
+    box1 = new translate(box1, vec3(265,0,295));
+    objects->add(box1);
 
-    auto glass = make_shared<dielectric>(1.5);
-    objects.add(make_shared<sphere>(point3(190,90,190), 90 , glass));
+    auto glass = new dielectric(1.5);
+    objects->add(new sphere(point3(190,90,190), 90 , glass));
 
     return objects;
 }
@@ -111,11 +111,10 @@ int main(int argc, char *argv[]) {
     image_t output_image(boost::extents[image_height][image_width][3]);
 
     // World
-    auto lights = make_shared<hittable_list>();
-    lights->add(make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>()));
-    lights->add(make_shared<sphere>(point3(190, 90, 190), 90, shared_ptr<material>()));
-
-    auto world = cornell_box();
+    hittable_list* lights = new hittable_list();
+    lights->add(new xz_rect(213, 343, 227, 332, 554, new material()));
+    lights->add(new sphere(point3(190, 90, 190), 90, new material()));
+    hittable_list* world = cornell_box();
 
     color background(0,0,0);
 

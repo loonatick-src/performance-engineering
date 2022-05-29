@@ -22,7 +22,7 @@ class material;
 struct hit_record {
     point3 p;
     vec3 normal;
-    shared_ptr<material> mat_ptr;
+    material* mat_ptr;
     double t;
     double u;
     double v;
@@ -52,7 +52,7 @@ class hittable {
 
 class flip_face : public hittable {
     public:
-        flip_face(shared_ptr<hittable> p) : ptr(p) {}
+        flip_face(hittable* p) : ptr(p) {}
 
         virtual bool hit(
             const ray& r, double t_min, double t_max, hit_record& rec) const override {
@@ -69,13 +69,13 @@ class flip_face : public hittable {
         }
 
     public:
-        shared_ptr<hittable> ptr;
+        hittable* ptr;
 };
 
 
 class translate : public hittable {
     public:
-        translate(shared_ptr<hittable> p, const vec3& displacement)
+        translate(hittable* p, const vec3& displacement)
             : ptr(p), offset(displacement) {}
 
         virtual bool hit(
@@ -84,7 +84,7 @@ class translate : public hittable {
         virtual bool bounding_box(double time0, double time1, aabb& output_box) const override;
 
     public:
-        shared_ptr<hittable> ptr;
+        hittable* ptr;
         vec3 offset;
 };
 
@@ -115,7 +115,7 @@ bool translate::bounding_box(double time0, double time1, aabb& output_box) const
 
 class rotate_y : public hittable {
     public:
-        rotate_y(shared_ptr<hittable> p, double angle);
+        rotate_y(hittable* p, double angle);
 
         virtual bool hit(
             const ray& r, double t_min, double t_max, hit_record& rec) const override;
@@ -126,7 +126,7 @@ class rotate_y : public hittable {
         }
 
     public:
-        shared_ptr<hittable> ptr;
+        hittable* ptr;
         double sin_theta;
         double cos_theta;
         bool hasbox;
@@ -134,7 +134,7 @@ class rotate_y : public hittable {
 };
 
 
-rotate_y::rotate_y(shared_ptr<hittable> p, double angle) : ptr(p) {
+rotate_y::rotate_y(hittable* p, double angle) : ptr(p) {
     auto radians = degrees_to_radians(angle);
     sin_theta = sin(radians);
     cos_theta = cos(radians);
