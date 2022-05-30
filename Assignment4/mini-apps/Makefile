@@ -1,9 +1,10 @@
 CC = gcc
 
-CFLAGS = -std=c11 -Wall -Wextra -O2 -fopenmp -I$(PAPI_HOME)/include $(OPTFLAGS)
-LDLIBS = -L$(PAPI_HOME)/lib -lpapi -lpfm  # TODO: is libpfm.a required?
+CFLAGS = -std=c11 -Wall -Wextra -O2 -fopenmp -DLIKWID_PERFMON -I$(LIKWID_HOME)/include $(OPTFLAGS)
+LDLIBS = -L$(LIKWID_HOME)/lib -llikwid# -lpapi -lpfm  # TODO: is libpfm.a required?
 
-SRC = $(wildcard *.c)
+# SRC = $(wildcard *.c)
+SRC = load_balance.c
 TARGETS = $(patsubst %.c, build/%.out, $(SRC))
 
 all: build $(TARGETS)
@@ -13,11 +14,9 @@ build/%.out: %.c
 
 src:
 	@echo $(SRC)
+
 build:
 	@mkdir -p build
 
 clean:
 	@rm -rf build
-
-papi:
-	echo $(PAPI_HOME)
