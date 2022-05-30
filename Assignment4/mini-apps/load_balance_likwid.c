@@ -17,7 +17,7 @@
 #define LIKWID_MARKER_GET(regionTag, nevents, events, time, count)
 #endif
 
-const size_t count = 1e8;
+const size_t count = 1e3;
 const size_t THREAD_COUNT = 32;
 
 

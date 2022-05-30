@@ -6,19 +6,31 @@
 #include <time.h>
 #include <stdatomic.h>
 
+#ifdef LIKWID_PERFMON
+#include "likwid.h"
+#else
+#define LIKWID_MARKER_INIT
+#define LIKWID_MARKER_THREADINIT
+#define LIKWID_MARKER_SWITCH
+#define LIKWID_MARKER_REGISTER(regionTag)
+#define LIKWID_MARKER_START(regionTag)
+#define LIKWID_MARKER_STOP(regionTag)
+#define LIKWID_MARKER_CLOSE
+#define LIKWID_MARKER_GET(regionTag, nevents, events, time, count)
+#endif
+
 _Thread_local unsigned int seed;
 
 const size_t BINS = 256;
 const size_t buffer_size = 1e9;
 
 const size_t count = 1e8;
-const size_t THREAD_COUNT = 32;
 
 void escape(void *p) {
     __asm__ volatile("" : : "g"(p) : "memory");
 }
 
-void clobbber() {
+void clobber() {
     __asm__ volatile("" : : : "memory");
 }
 
@@ -30,7 +42,7 @@ int generate_random_datum(unsigned int *seedp) {
 
 void fill_buffer(int *arr, size_t buffer_size) {
     // might find false sharing here?
-    #pragma omp parallel for
+    #pragma omp for
     for (size_t i = 0; i < buffer_size; i++) {
         arr[i] = generate_random_datum(&seed);
     }
@@ -38,7 +50,7 @@ void fill_buffer(int *arr, size_t buffer_size) {
 }
 
 void compute_hist(int *arr, size_t buffer_size, int *hist, size_t bins) {
-    #pragma omp parallel for
+    #pragma omp for
     for (size_t i = 0; i < buffer_size; i++) {
         int hist_index = arr[i];
         #pragma omp atomic
@@ -55,31 +67,42 @@ void print_buffer(int *arr, size_t buffer_size) {
     return;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+    int THREAD_COUNT = atoi(argv[1]);    
     omp_set_num_threads(THREAD_COUNT);
+    printf("Number of threads: %d\n", THREAD_COUNT);
+
+    LIKWID_MARKER_INIT;
+    #pragma omp parallel 
+    {
+        LIKWID_MARKER_REGISTER("fill");
+        LIKWID_MARKER_REGISTER("hist");
+    }
     
     int *arr = malloc(buffer_size * sizeof(int));
     int *hist = malloc(BINS * sizeof(int));
 
-    fill_buffer(arr, buffer_size);
-    // print_buffer(arr, buffer_size);
-    struct timespec start_time, end_time;
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
-    clock_gettime(CLOCK_MONOTONIC, &start_time);
-    compute_hist(arr, buffer_size, hist, BINS);
-    clock_gettime(CLOCK_MONOTONIC, &end_time);
-    /*
-    struct timespec elapsed_time {
-        .tv_sec = end_time.tv_sec - start_time.tv_sec;
-        .tv_usec = end_time.tv_nsec - start_time.tv_nsec;
-    };
-    */
+    #pragma omp parallel
+    {
+        LIKWID_MARKER_START("fill");
+        fill_buffer(arr, buffer_size);
+        LIKWID_MARKER_STOP("fill");
 
-    printf("Elapsed time: %lu seconds %ld nanoseconds\n",
-            end_time.tv_sec - start_time.tv_sec,
-            end_time.tv_nsec - start_time.tv_nsec);
+        LIKWID_MARKER_START("hist");
+        compute_hist(arr, buffer_size, hist, BINS);
+        LIKWID_MARKER_STOP("hist");
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double seconds = end.tv_sec - start.tv_sec;
+    double nanoseconds = end.tv_nsec - start.tv_nsec;
+    printf("runtime: %lf\n", seconds + (nanoseconds*1e-9));
 
     free(arr);
     free(hist);
+    LIKWID_MARKER_CLOSE;
     return 0;
 }
