@@ -79,9 +79,9 @@ reduce0(T *g_idata, T *g_odata, unsigned int n)
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
     sdata[tid] = (i < n) ? g_idata[i] : 0;
 
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
@@ -100,6 +100,10 @@ reduce0(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /* This version uses contiguous threads, but its interleaved
    addressing results in many shared memory bank conflicts.
 */
@@ -114,16 +118,18 @@ reduce1(T *g_idata, T *g_odata, unsigned int n)
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
     sdata[tid] = (i < n) ? g_idata[i] : 0;
 
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
     for (unsigned int s=1; s < blockDim.x; s *= 2)
     {
+        // no modulo arithmetic
         int index = 2 * s * tid;
 
+        // bounds check
         if (index < blockDim.x)
         {
             sdata[index] += sdata[index + s];
@@ -136,6 +142,11 @@ reduce1(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version uses sequential addressing -- no divergence or bank conflicts.
 */
@@ -150,14 +161,15 @@ reduce2(T *g_idata, T *g_odata, unsigned int n)
     // load shared mem
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
-
     sdata[tid] = (i < n) ? g_idata[i] : 0;
 
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
     for (unsigned int s=blockDim.x/2; s>0; s>>=1)
     {
+        // shit man that's sick
         if (tid < s)
         {
             sdata[tid] += sdata[tid + s];
@@ -170,6 +182,10 @@ reduce2(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version uses n/2 threads --
     it performs the first level of reduction when reading from global memory.
@@ -189,15 +205,18 @@ reduce3(T *g_idata, T *g_odata, unsigned int n)
 
     T mySum = (i < n) ? g_idata[i] : 0;
 
+    // one level of reduction
     if (i + blockDim.x < n)
         mySum += g_idata[i+blockDim.x];
 
+    // load into shared memory
     sdata[tid] = mySum;
     cg::sync(cta);
 
     // do reduction in shared mem
     for (unsigned int s=blockDim.x/2; s>0; s>>=1)
     {
+        // same as reduce2 but with `mySum`?
         if (tid < s)
         {
             sdata[tid] = mySum = mySum + sdata[tid + s];
@@ -210,6 +229,12 @@ reduce3(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = mySum;
 }
 
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version uses the warp shuffle operation if available to reduce 
     warp synchronization. When shuffle is not available the final warp's
@@ -235,18 +260,22 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
     // reading from global memory, writing to shared memory
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
-
     T mySum = (i < n) ? g_idata[i] : 0;
 
+    // first level of reduction
     if (i + blockSize < n)
         mySum += g_idata[i+blockSize];
 
+    // store into shared memory
     sdata[tid] = mySum;
+
+    // barrier synchronization
     cg::sync(cta);
 
     // do reduction in shared mem
     for (unsigned int s=blockDim.x/2; s>32; s>>=1)
     {
+        // same as reduce3
         if (tid < s)
         {
             sdata[tid] = mySum = mySum + sdata[tid + s];
@@ -255,6 +284,7 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
         cg::sync(cta);
     }
 
+    // partition this thread block into chunks of 32 threads (i.e. into warps?)
     cg::thread_block_tile<32> tile32 = cg::tiled_partition<32>(cta);
 
     if (cta.thread_rank() < 32)
@@ -264,6 +294,7 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
         // Reduce final warp using shuffle
         for (int offset = tile32.size()/2; offset > 0; offset /= 2) 
         {
+             // warp-level primitive (for reduction?)
              mySum += tile32.shfl_down(mySum, offset);
         }
     }
@@ -272,6 +303,10 @@ reduce4(T *g_idata, T *g_odata, unsigned int n)
     if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version is completely unrolled, unless warp shuffle is available, then
     shuffle is used within a loop.  It uses a template parameter to achieve
@@ -343,6 +378,10 @@ reduce5(T *g_idata, T *g_odata, unsigned int n)
     if (cta.thread_rank() == 0) g_odata[blockIdx.x] = mySum;
 }
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /*
     This version adds multiple elements per thread sequentially.  This reduces the overall
     cost of the algorithm while keeping the work complexity O(n) and the step complexity O(log n).
