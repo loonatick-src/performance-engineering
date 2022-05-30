@@ -20,19 +20,18 @@
 const size_t count = 1e8;
 const size_t THREAD_COUNT = 32;
 
-size_t NUM_EVENT = TODO;
 
 void escape(void *p) {
     __asm__ volatile("" : : "g"(p) : "memory");
 }
 
-void clobbber() {
-    __asm__ volatile("" : : : "memory")
+void clobber() {
+    __asm__ volatile("" : : : "memory");
 }
 
 int test_imbalanced(int x) {
 	// Transform to a number beween 0 and 2 * pi.
-	double xd = ((double)x * (2 * M_PI) / N);
+	double xd = ((double)x * (2 * M_PI) / count);
 
 	// Do computation, the amount depends on the value of x.
 	int n = 100000 * x;
@@ -57,38 +56,25 @@ void parallel_test(bool* arr, size_t count) {
     return;
 }
 
-void print_values(int values[NUM_EVENT]);
 
 int main() {
     LIKWID_MARKER_INIT;
-#pragma omp parallel {
-    LIKWID_MARKER_REGISTER("load_imbalance");
-}
+    #pragma omp parallel 
+    {
+        LIKWID_MARKER_REGISTER("load_imbalance");
+    }
 
 
     bool *arr = malloc(count * sizeof(bool));
 
     omp_set_num_threads(THREAD_COUNT);
 
-    struct timespec start_time, end_time;
-    clock_gettime(CLOCK_MONOTONIC, &start_time);
-
-#pragma omp parallel
-{
-    LIKWID_MARKER_START("load_imbalance");
-    parallel_test(arr, count);
-    LIKWID_MARKER_STOP("load_imbalance");
-}
-
-    clock_gettime(CLOCK_MONOTONIC, &end_time);
-        
-    struct timespec elapsed_time {
-        .tv_sec = end_time.tv_sec - start_time.tv_sec;
-        .tv_nsec = end_time.tv_nsec - start_time.tv_nsec;
-    } 
-
-    printf("Elapsed time: %lu seconds %ld nanoseconds\n",
-            elapsed_time.tv_sec, elapsed_time.tv_nsec);
+    #pragma omp parallel
+    {
+        LIKWID_MARKER_START("load_imbalance");
+        parallel_test(arr, count);
+        LIKWID_MARKER_STOP("load_imbalance");
+    }
 
     free(arr);
 

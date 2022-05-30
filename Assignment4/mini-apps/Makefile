@@ -1,16 +1,16 @@
 CC = gcc
 
-CFLAGS = -std=c11 -Wall -Wextra -O2 -fopenmp -DLIKWID_PERFMON -I$(LIKWID_HOME)/include $(OPTFLAGS)
-LDLIBS = -L$(LIKWID_HOME)/lib -llikwid# -lpapi -lpfm  # TODO: is libpfm.a required?
+CFLAGS = -std=gnu11 -Wall -Wextra -O2 -fopenmp -DLIKWID_PERFMON -I$(LIKWID_HOME)/include $(OPTFLAGS)
+LDLIBS = -L$(LIKWID_HOME)/lib -llikwid
 
 # SRC = $(wildcard *.c)
-SRC = load_balance.c
+SRC = load_balance_likwid.c
 TARGETS = $(patsubst %.c, build/%.out, $(SRC))
 
 all: build $(TARGETS)
 
 build/%.out: %.c
-	$(CC) $(CFLAGS) $< -o $@ -lm #$(LDLIBS)
+	$(CC) $(CFLAGS) $< -o $@ -lm $(LDLIBS)
 
 src:
 	@echo $(SRC)
