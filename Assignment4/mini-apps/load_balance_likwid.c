@@ -18,7 +18,6 @@
 #endif
 
 const size_t count = 1e3;
-const size_t THREAD_COUNT = 32;
 
 
 void escape(void *p) {
@@ -57,7 +56,11 @@ void parallel_test(bool* arr, size_t count) {
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
+    int THREAD_COUNT = atoi(argv[1]);    
+    omp_set_num_threads(THREAD_COUNT);
+    printf("Number of threads: %d\n", THREAD_COUNT);
+    
     LIKWID_MARKER_INIT;
     #pragma omp parallel 
     {
@@ -66,15 +69,19 @@ int main() {
 
 
     bool *arr = malloc(count * sizeof(bool));
-
-    omp_set_num_threads(THREAD_COUNT);
-
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
     #pragma omp parallel
     {
         LIKWID_MARKER_START("load_imbalance");
         parallel_test(arr, count);
         LIKWID_MARKER_STOP("load_imbalance");
     }
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double seconds = end.tv_sec - start.tv_sec;
+    double nanoseconds = end.tv_nsec - start.tv_nsec;
+    printf("runtime: %lf\n", seconds + (nanoseconds*1e-9));
+
 
     free(arr);
 
