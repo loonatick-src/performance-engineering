@@ -54,24 +54,6 @@ thread_local unsigned int seed;
 static void escape(void *p) { asm volatile("" : : "g"(p) : "memory"); }
 static void clobber() { asm volatile("" : : : "memory"); }
 
-// inline void repeat_sqrt(unsigned int count, double arg) {
-//     for (unsized int i = 0 ; i < count; i++) {
-//         clobber();
-//         sqrt(arg);
-//         clobber();
-//     }
-// }
-
-// most likely misleading due to ILP -- will report reciprocal throughput essentially
-// static void BM_SqrtRepeated(benchmark::State& state) {
-//     auto seedp = &seed;
-//     auto arg = random_double_r(seedp);
-//     for (auto _ : state) {
-//         REPEAT_8(x = sqrt(arg));
-//         esacpe(&x);
-//     }
-// }
-
 static void BM_SqrtManual(benchmark::State& state) {
     double sqrt_arg;
     auto seedp = &seed;
@@ -83,6 +65,13 @@ static void BM_SqrtManual(benchmark::State& state) {
         END_TIMER;
         escape(&x);
         state.SetIterationTime(elapsed_seconds.count()/8.0l);
+    }
+}
+
+static void BM_SqrtRepeat_8(benchmark::State& state) {
+    auto x = random_double_r(1.0e6, 1.0e7, &seed);
+    for (auto _ : state) {
+        REPEAT_8(x = sqrt(x));
     }
 }
 
@@ -111,9 +100,9 @@ static void BM_2Normsq(benchmark::State& state) {
 }
 
 static void BM_Trig(benchmark::State& state) {
-    x = random_double_r(1.0e6, 1.0e7, &seed);
+    double x = random_double_r(1.0e6, 1.0e7, &seed);
     for (auto _: state) {
-        // I hope the fixed point iteration does not convege
+	// the fixed point iteration will most likely not converge
         x = sin(x);
         escape(&x);
     }
@@ -121,7 +110,8 @@ static void BM_Trig(benchmark::State& state) {
 
 BENCHMARK(BM_Sqrt);
 BENCHMARK(BM_SqrtManual)->UseManualTime();
-BENCHMARK(BM_SqrtRepeated);
+BENCHMARK(BM_SqrtRepeat_8);
+// BENCHMARK(BM_SqrtRepeated);
 // BENCHMARK(BM_SqrtManualClobber)->UseManualTime();
 // BENCHMARK(BM_SqrtManualEscape)->UseManualTime();
 // BENCHMARK(BM_2Normsq);
