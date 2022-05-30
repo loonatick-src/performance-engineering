@@ -1,3 +1,5 @@
+#include <math.h>
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -15,7 +17,7 @@ void kernel(double *arr, size_t count) {
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     // first-touch principle should allocate everything to the same domain
     double *array = calloc(count, sizeof(double));
     omp_set_num_threads(THREAD_COUNT);
@@ -31,6 +33,6 @@ int main(int argc, char *argv[]) {
     time_t elapsed_seconds = end_time.tv_sec - start_time.tv_sec;
     long elapsed_nanoseconds = end_time.tv_nsec - start_time.tv_nsec;
     printf("%lu seconds, %ld nanoseconds\n", elapsed_seconds, elapsed_nanoseconds);
-    free(kernel);
+    free(array);
     return 0;
 }

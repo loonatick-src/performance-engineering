@@ -1,16 +1,18 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra -O2 -I$(PAPI_HOME)/include $(OPTFLAGS)
+CFLAGS = -Wall -Wextra -O2 -fopenmp -I$(PAPI_HOME)/include $(OPTFLAGS)
 LDLIBS = -L$(PAPI_HOME)/lib -lpapi -lpfm  # TODO: is libpfm.a required?
 
-SRC = $(wildcard %.c)
-TARGETS = $(patsubst %.c, %.out, $(SRC))
+SRC = $(wildcard *.c)
+TARGETS = $(patsubst %.c, build/%.out, $(SRC))
 
 all: build $(TARGETS)
 
-%.out: %.c
-	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
+build/%.out: %.c
+	$(CC) $(CFLAGS) $< -o $@ -lm #$(LDLIBS)
 
+src:
+	@echo $(SRC)
 build:
 	@mkdir -p build
 
