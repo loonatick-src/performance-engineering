@@ -4,7 +4,7 @@ CFLAGS = -std=gnu11 -Wall -Wextra -O2 -fopenmp -DLIKWID_PERFMON -I$(LIKWID_HOME)
 LDLIBS = -L$(LIKWID_HOME)/lib -llikwid
 
 # SRC = $(wildcard *.c)
-SRC = false_sharing.c
+SRC = ccNUMA.c
 TARGETS = $(patsubst %.c, build/%.out, $(SRC))
 
 all: build $(TARGETS)
