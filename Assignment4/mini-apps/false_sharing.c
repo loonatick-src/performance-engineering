@@ -21,8 +21,8 @@
 
 _Thread_local unsigned int seed;
 
-const size_t BINS = 256;
-const size_t buffer_size = 1e9;
+#define BINS 256
+const int BUFFER_SIZE = 1e9;
 
 const size_t count = 1e8;
 
@@ -49,16 +49,6 @@ void fill_buffer(int *arr, size_t buffer_size) {
     return;
 }
 
-void compute_hist(int *arr, size_t buffer_size, int *hist, size_t bins) {
-    #pragma omp for
-    for (size_t i = 0; i < buffer_size; i++) {
-        int hist_index = arr[i];
-        #pragma omp atomic
-        hist[hist_index]++; 
-    }
-    return;
-}
-
 void print_buffer(int *arr, size_t buffer_size) {
     for (size_t i = 0; i < buffer_size-1; i++) {
         printf("%d ", arr[i]);
@@ -79,8 +69,8 @@ int main(int argc, char *argv[]) {
         LIKWID_MARKER_REGISTER("hist");
     }
     
-    int *arr = malloc(buffer_size * sizeof(int));
-    int *hist = malloc(BINS * sizeof(int));
+    int *arr = malloc(BUFFER_SIZE * sizeof(int));
+    int hist[BINS] = {0};
 
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
@@ -88,11 +78,18 @@ int main(int argc, char *argv[]) {
     #pragma omp parallel
     {
         LIKWID_MARKER_START("fill");
-        fill_buffer(arr, buffer_size);
+        fill_buffer(arr, BUFFER_SIZE);
         LIKWID_MARKER_STOP("fill");
 
         LIKWID_MARKER_START("hist");
-        compute_hist(arr, buffer_size, hist, BINS);
+        
+        #pragma omp for
+        for (size_t i = 0; i < BUFFER_SIZE; i++) {
+            int hist_index = arr[i];
+            #pragma omp atomic
+            hist[hist_index]++; 
+        }
+        
         LIKWID_MARKER_STOP("hist");
     }
 
@@ -102,7 +99,6 @@ int main(int argc, char *argv[]) {
     printf("runtime: %lf\n", seconds + (nanoseconds*1e-9));
 
     free(arr);
-    free(hist);
     LIKWID_MARKER_CLOSE;
     return 0;
 }
