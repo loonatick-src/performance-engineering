@@ -1,3 +1,7 @@
+# Ingredients
+## Docs
+1. A reference of the available counters in PAPI -- both derived and native
+2. High-level API reference
 # Load Imbalance
 The function `test_imbalanced` performance a variable amount of work depending on its argument. We create an array of arguments and
 map this function to that array using a parallel for loop.
@@ -13,6 +17,9 @@ Saturating speedup with increasing thread count.
 The instruction count should in general be different for each core. Since the kernel uses the floating point functions `sin`and `asin`,
 and the difference in load comes from how many times these functions are called, we can simply count the number of floating point
 instuctions. No other part of the kernel uses floating point instructions.
+
+1. Retired FLOPS
+2. Active cycles
 
 # False Sharing
 Histogram is the poster child for false sharing heheh. Many threads and few cache lines should do the trick.
