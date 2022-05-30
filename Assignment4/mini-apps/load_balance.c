@@ -8,11 +8,11 @@ const size_t count = 1e8;
 const size_t THREAD_COUNT = 32;
 
 void escape(void *p) {
-    asm volatile("" : : "g"(p) : "memory");
+    __asm__ volatile("" : : "g"(p) : "memory");
 }
 
 void clobbber() {
-    asm volatile("" : : : "memory")
+    __asm__ volatile("" : : : "memory")
 }
 
 int test_imbalanced(int x) {
