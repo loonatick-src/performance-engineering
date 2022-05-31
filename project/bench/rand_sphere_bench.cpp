@@ -9,6 +9,7 @@
 thread_local unsigned int seed;
 
 double GLOBAL_DOUBLE;
+int GLOBAL_INT;
 
 static void BM_RandomSphereBaseline(benchmark::State& state) {
     for (auto _: state) {
@@ -42,9 +43,10 @@ BENCHMARK(BM_RandomSphereCartesian)->ComputeStatistics("stddev", stddev)->Repeti
 
 
 static void BM_RandomSphereBaselineIter(benchmark::State& state) {
+    hit_count = 0;
     for (auto _ : state) {
         auto v = vec3::random(-1, 1);
-        GLOBAL_DOUBLE = v.length_squared();
+        if (v.length_squared() < 1.0l) hit_count++;
         clobber();
     }
 }
