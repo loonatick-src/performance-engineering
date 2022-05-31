@@ -1,43 +1,115 @@
 nohup: ignoring input and appending output to ‘nohup.out’
 CONFIG
 - thread_count = 1
-- image_width  = 128
-- image_height = 128
+- image_width  = 22
+- image_height = 22
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 4.08557 seconds
+Writing image to buffer took 0.172368 seconds
+Done.
+CONFIG
+- thread_count = 1
+- image_width  = 32
+- image_height = 32
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 0.338262 seconds
+Done.
+CONFIG
+- thread_count = 1
+- image_width  = 45
+- image_height = 45
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 0.653809 seconds
+Done.
+CONFIG
+- thread_count = 1
+- image_width  = 64
+- image_height = 64
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 1.18208 seconds
+Done.
+CONFIG
+- thread_count = 1
+- image_width  = 90
+- image_height = 90
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 2.15821 seconds
 Done.
 CONFIG
 - thread_count = 1
 - image_width  = 128
-- image_height = 256
+- image_height = 128
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 8.11392 seconds
+Writing image to buffer took 4.25296 seconds
 Done.
 CONFIG
 - thread_count = 1
-- image_width  = 128
-- image_height = 512
+- image_width  = 181
+- image_height = 181
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 15.1268 seconds
+Writing image to buffer took 8.2408 seconds
 Done.
 CONFIG
 - thread_count = 1
-- image_width  = 128
-- image_height = 1024
+- image_width  = 256
+- image_height = 256
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 30.1663 seconds
+Writing image to buffer took 16.2952 seconds
 Done.
 CONFIG
 - thread_count = 1
-- image_width  = 128
-- image_height = 2048
+- image_width  = 362
+- image_height = 362
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 57.9121 seconds
+Writing image to buffer took 32.4755 seconds
+Done.
+CONFIG
+- thread_count = 2
+- image_width  = 22
+- image_height = 22
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 0.285837 seconds
+Done.
+CONFIG
+- thread_count = 2
+- image_width  = 32
+- image_height = 32
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 0.624454 seconds
+Done.
+CONFIG
+- thread_count = 2
+- image_width  = 45
+- image_height = 45
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 1.1402 seconds
+Done.
+CONFIG
+- thread_count = 2
+- image_width  = 64
+- image_height = 64
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 2.10716 seconds
+Done.
+CONFIG
+- thread_count = 2
+- image_width  = 90
+- image_height = 90
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 4.00813 seconds
 Done.
 CONFIG
 - thread_count = 2
@@ -45,39 +117,71 @@ CONFIG
 - image_height = 128
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 7.78605 seconds
+Writing image to buffer took 8.18485 seconds
 Done.
 CONFIG
 - thread_count = 2
-- image_width  = 128
+- image_width  = 181
+- image_height = 181
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 15.7293 seconds
+Done.
+CONFIG
+- thread_count = 2
+- image_width  = 256
 - image_height = 256
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 15.7217 seconds
+Writing image to buffer took 31.3346 seconds
 Done.
 CONFIG
 - thread_count = 2
-- image_width  = 128
-- image_height = 512
+- image_width  = 362
+- image_height = 362
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 30.463 seconds
+Writing image to buffer took 62.886 seconds
 Done.
 CONFIG
-- thread_count = 2
-- image_width  = 128
-- image_height = 1024
+- thread_count = 4
+- image_width  = 22
+- image_height = 22
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 61.8262 seconds
+Writing image to buffer took 0.389735 seconds
 Done.
 CONFIG
-- thread_count = 2
-- image_width  = 128
-- image_height = 2048
+- thread_count = 4
+- image_width  = 32
+- image_height = 32
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 116.92 seconds
+Writing image to buffer took 0.773937 seconds
+Done.
+CONFIG
+- thread_count = 4
+- image_width  = 45
+- image_height = 45
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 1.40604 seconds
+Done.
+CONFIG
+- thread_count = 4
+- image_width  = 64
+- image_height = 64
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 2.70135 seconds
+Done.
+CONFIG
+- thread_count = 4
+- image_width  = 90
+- image_height = 90
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 5.18542 seconds
 Done.
 CONFIG
 - thread_count = 4
@@ -85,39 +189,71 @@ CONFIG
 - image_height = 128
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 10.5224 seconds
+Writing image to buffer took 10.3644 seconds
 Done.
 CONFIG
 - thread_count = 4
-- image_width  = 128
+- image_width  = 181
+- image_height = 181
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 20.8876 seconds
+Done.
+CONFIG
+- thread_count = 4
+- image_width  = 256
 - image_height = 256
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 20.7562 seconds
+Writing image to buffer took 41.7712 seconds
 Done.
 CONFIG
 - thread_count = 4
-- image_width  = 128
-- image_height = 512
+- image_width  = 362
+- image_height = 362
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 39.1856 seconds
+Writing image to buffer took 83.0763 seconds
 Done.
 CONFIG
-- thread_count = 4
-- image_width  = 128
-- image_height = 1024
+- thread_count = 8
+- image_width  = 22
+- image_height = 22
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 80.0964 seconds
+Writing image to buffer took 0.420741 seconds
 Done.
 CONFIG
-- thread_count = 4
-- image_width  = 128
-- image_height = 2048
+- thread_count = 8
+- image_width  = 32
+- image_height = 32
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 151.364 seconds
+Writing image to buffer took 0.853673 seconds
+Done.
+CONFIG
+- thread_count = 8
+- image_width  = 45
+- image_height = 45
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 1.58776 seconds
+Done.
+CONFIG
+- thread_count = 8
+- image_width  = 64
+- image_height = 64
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 3.02355 seconds
+Done.
+CONFIG
+- thread_count = 8
+- image_width  = 90
+- image_height = 90
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 5.86491 seconds
 Done.
 CONFIG
 - thread_count = 8
@@ -125,39 +261,71 @@ CONFIG
 - image_height = 128
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 11.8722 seconds
+Writing image to buffer took 11.8663 seconds
 Done.
 CONFIG
 - thread_count = 8
-- image_width  = 128
+- image_width  = 181
+- image_height = 181
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 23.393 seconds
+Done.
+CONFIG
+- thread_count = 8
+- image_width  = 256
 - image_height = 256
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 23.8966 seconds
+Writing image to buffer took 46.1831 seconds
 Done.
 CONFIG
 - thread_count = 8
-- image_width  = 128
-- image_height = 512
+- image_width  = 362
+- image_height = 362
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 45.5108 seconds
+Writing image to buffer took 93.4116 seconds
 Done.
 CONFIG
-- thread_count = 8
-- image_width  = 128
-- image_height = 1024
+- thread_count = 16
+- image_width  = 22
+- image_height = 22
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 89.0279 seconds
+Writing image to buffer took 0.413552 seconds
 Done.
 CONFIG
-- thread_count = 8
-- image_width  = 128
-- image_height = 2048
+- thread_count = 16
+- image_width  = 32
+- image_height = 32
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 174.846 seconds
+Writing image to buffer took 0.831323 seconds
+Done.
+CONFIG
+- thread_count = 16
+- image_width  = 45
+- image_height = 45
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 1.55584 seconds
+Done.
+CONFIG
+- thread_count = 16
+- image_width  = 64
+- image_height = 64
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 2.99894 seconds
+Done.
+CONFIG
+- thread_count = 16
+- image_width  = 90
+- image_height = 90
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 5.79399 seconds
 Done.
 CONFIG
 - thread_count = 16
@@ -165,37 +333,29 @@ CONFIG
 - image_height = 128
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 11.623 seconds
+Writing image to buffer took 11.5812 seconds
 Done.
 CONFIG
 - thread_count = 16
-- image_width  = 128
+- image_width  = 181
+- image_height = 181
+- max_depth = 50
+- samples_per_pixel = 100
+Writing image to buffer took 23.7234 seconds
+Done.
+CONFIG
+- thread_count = 16
+- image_width  = 256
 - image_height = 256
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 23.77 seconds
+Writing image to buffer took 46.1927 seconds
 Done.
 CONFIG
 - thread_count = 16
-- image_width  = 128
-- image_height = 512
+- image_width  = 362
+- image_height = 362
 - max_depth = 50
 - samples_per_pixel = 100
-Writing image to buffer took 44.0933 seconds
-Done.
-CONFIG
-- thread_count = 16
-- image_width  = 128
-- image_height = 1024
-- max_depth = 50
-- samples_per_pixel = 100
-Writing image to buffer took 89.2006 seconds
-Done.
-CONFIG
-- thread_count = 16
-- image_width  = 128
-- image_height = 2048
-- max_depth = 50
-- samples_per_pixel = 100
-Writing image to buffer took 176.219 seconds
+Writing image to buffer took 93.4222 seconds
 Done.

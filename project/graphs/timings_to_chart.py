@@ -100,13 +100,14 @@ def parallel_versions(filename):
   base = parseResultFile("../measurements/v0_results.txt")
   parsed = parseResultFile(filename)
   
-  sizes =  [128, 256, 512, 1024, 2048]
-  sequential =  [next(e for e in base if e['threads'] == 1 and e['height'] == s)['seconds_to_render'] for s in sizes]
-  omp_1 =  [next(e for e in parsed if e['threads'] == 1 and e['height'] == s)['seconds_to_render'] for s in sizes]
-  omp_2 =  [next(e for e in parsed if e['threads'] == 2 and e['height'] == s)['seconds_to_render'] for s in sizes]
-  omp_4 =  [next(e for e in parsed if e['threads'] == 4 and e['height'] == s)['seconds_to_render'] for s in sizes]
-  omp_8 =  [next(e for e in parsed if e['threads'] == 8 and e['height'] == s)['seconds_to_render'] for s in sizes]
-  omp_16 = [next(e for e in parsed if e['threads'] == 16 and e['height'] == s)['seconds_to_render'] for s in sizes]
+  _sizes = np.array([22, 32, 45, 64, 90, 128, 181, 256, 362])
+  sizes = _sizes ** 2
+  sequential =  [next(e for e in base if e['threads'] == 1 and e['height'] == s)['seconds_to_render'] for s in _sizes]
+  omp_1 =  [next(e for e in parsed if e['threads'] == 1 and e['height'] == s)['seconds_to_render'] for s in _sizes]
+  omp_2 =  [next(e for e in parsed if e['threads'] == 2 and e['height'] == s)['seconds_to_render'] for s in _sizes]
+  omp_4 =  [next(e for e in parsed if e['threads'] == 4 and e['height'] == s)['seconds_to_render'] for s in _sizes]
+  omp_8 =  [next(e for e in parsed if e['threads'] == 8 and e['height'] == s)['seconds_to_render'] for s in _sizes]
+  omp_16 = [next(e for e in parsed if e['threads'] == 16 and e['height'] == s)['seconds_to_render'] for s in _sizes]
 
   plt.plot(sizes, sequential, label="Base framework")
   plt.plot(sizes, omp_1, label="Omp 1")
@@ -120,4 +121,4 @@ def parallel_versions(filename):
   plt.legend()
   plt.show()
 
-parallel_versions("../measurements/v6_results.txt")
+parallel_versions("../measurements/v4_results.txt")
