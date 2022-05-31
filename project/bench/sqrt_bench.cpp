@@ -99,7 +99,7 @@ BENCHMARK(BM_Nop);
 static void BM_SqrtFPI_small(benchmark::State& state) {
     for (auto _ : state) {
         GLOBAL_DOUBLE = random_double_r(0.0l, 1.0l, &seed);
-        REPEAT_64(GLOBAL_DOUBLE = sqrt(GLOBAL_DOUBLE));
+        REPEAT_32(GLOBAL_DOUBLE = sqrt(GLOBAL_DOUBLE));
     }
 }
 
@@ -108,8 +108,8 @@ BENCHMARK(BM_SqrtFPI_small);
 
 static void BM_SqrtFPI_large(benchmark::State& state) {
     for (auto _ : state) {
-        GLOBAL_DOUBLE = random_double_r(2.2342562e101, 2.252521e201, &seed);
-        REPEAT_64(GLOBAL_DOUBLE = sqrt(GLOBAL_DOUBLE));
+        GLOBAL_DOUBLE = random_double_r(1.0e250, 1.0e300, &seed);
+        REPEAT_32(GLOBAL_DOUBLE = sqrt(GLOBAL_DOUBLE));
     }
 }
 
