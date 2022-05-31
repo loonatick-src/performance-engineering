@@ -5,10 +5,26 @@
 #include <cmath>
 #include <cstdlib>
 #include <benchmark/benchmark.h>
+#include <numeric>
 
 double GLOBAL_DOUBLE;
 
 thread_local unsigned int seed;
+
+double mean(const std::vector<double> &v) {
+    return std::accumulate(v.begin(), v.end(), 0.0l) / v.size();
+}
+
+double stddev(const std::vector<double> &v) {
+    auto mv = mean(v);
+    double s = 0.0l;
+    for (const auto &x: v) {
+        s += (x - mv) * (x - mv);
+    }
+    s /= v.size() - 1ul;
+
+    return sqrt(s);
+}
 
 static void BM_Sqrt(benchmark::State& state) {
     auto x = random_double_r(1.0e8, 1.0e9, &seed);
@@ -113,7 +129,7 @@ static void BM_SqrtFPI_large(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_SqrtFPI_large);
+BENCHMARK(BM_SqrtFPI_large)->ComputeStatistics("stddev", stddev)->Repetitions(10);
 
 
 BENCHMARK_MAIN();
