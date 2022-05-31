@@ -43,7 +43,7 @@ BENCHMARK(BM_RandomSphereCartesian)->ComputeStatistics("stddev", stddev)->Repeti
 
 
 static void BM_RandomSphereBaselineIter(benchmark::State& state) {
-    hit_count = 0;
+    int hit_count = 0;
     for (auto _ : state) {
         auto v = vec3::random(-1, 1);
         if (v.length_squared() < 1.0l) hit_count++;
