@@ -1,58 +1,14 @@
 #include "rtweekend.h"
 #include "vec3.h"
-#include "omp.h"
+
+#include "common_bench.h"
 
 #include <iostream>
 #include <benchmark/benchmark.h>
-#include <chrono>
+#include <omp.h>
 
-
-// old school loop unrolling -- CPP macros
-// better software engineering practice:
-// create a template class for unrolled loops,
-// that specializes using an unsigned in - the unroll degree
-// use that template class to dispatch the division ratio
-#define REPEAT_64(expr)                                                        \
-  REPEAT_32(expr);                                                             \
-  REPEAT_32(expr);
-#define REPEAT_32(expr)                                                        \
-  REPEAT_16(expr);                                                             \
-  REPEAT_16(expr);
-
-#define REPEAT_16(expr)                                                        \
-  REPEAT_8(expr);                                                              \
-  REPEAT_8(expr);
-
-#define REPEAT_8(expr)                                                         \
-  REPEAT_4(expr);                                                              \
-  REPEAT_4(expr);
-
-#define REPEAT_4(expr)                                                         \
-  REPEAT_2(expr);                                                              \
-  REPEAT_2(expr);
-
-#define REPEAT_2(expr)                                                         \
-  (expr);                                                                      \
-  (expr);
-
-
-#define START_TIMER auto start_time = high_resolution_clock::now()
-#define END_TIMER                                                              \
-  auto end_time = high_resolution_clock::now();                                \
-  const auto elapsed_seconds =                                                 \
-      std::chrono::duration_cast<std::chrono::duration<double>>(end_time -     \
-                                                                start_time)
-
-
-// using std::chrono::steady_clock;
-using std::chrono::high_resolution_clock;
-using std::chrono::nanoseconds;
-using std::chrono::time_point;
 
 thread_local unsigned int seed;
-
-static void escape(void *p) { asm volatile("" : : "g"(p) : "memory"); }
-static void clobber() { asm volatile("" : : : "memory"); }
 
 static void BM_SqrtManual(benchmark::State& state) {
     double sqrt_arg;
@@ -75,7 +31,24 @@ static void BM_SqrtRepeat_8(benchmark::State& state) {
     }
 }
 
-// most likely misleading because LSD and ILP
+static void BM_SqrtRepeat_4_rand(benchmark::State& state) {
+    double x;
+    for (auto _ : state) {
+        x = random_double_r(1.0e10, 1.0e20, &seed);
+        REPEAT_4(x = sqrt(x));
+        escape(&x);
+    }
+}
+
+
+static void BM_rand_ab(benchmark::State& state) {
+   double x;
+   for (auto _ : state) {
+       x = random_double_r(1.0e10, 1.0e20, &seed);
+       clobber();
+   }
+}
+
 static void BM_Sqrt(benchmark::State& state) {
     auto rnum = random_double_r(&seed);
     double rsqrt;
@@ -102,11 +75,12 @@ static void BM_2Normsq(benchmark::State& state) {
 static void BM_Trig(benchmark::State& state) {
     double x = random_double_r(1.0e6, 1.0e7, &seed);
     for (auto _: state) {
-	// the fixed point iteration will most likely not converge
+        // the fixed point iteration converges, which will affect the runtime
         x = sin(x);
         escape(&x);
     }
 }
+
 
 BENCHMARK(BM_Sqrt);
 BENCHMARK(BM_SqrtManual)->UseManualTime();

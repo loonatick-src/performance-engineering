@@ -1,20 +1,12 @@
 #include "rtweekend.h"
 #include "vec3.h"
 
-#include <omp.h>
+#include "common_bench.h"
+
 #include <iostream>
 #include <benchmark/benchmark.h>
 
 thread_local unsigned int seed;
-
-// thank you Chandler Caruth, very cool
-static void escape(void *p) {
-  asm volatile("" : : "g"(p) : "memory");
-}
-
-static void clobber() {
-  asm volatile("" : : : "memory");
-}
 
 static void BM_RandomSphereBaseline(benchmark::State& state) {
     for (auto _: state) {
