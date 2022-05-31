@@ -2,6 +2,24 @@
 #define PE_COMMON_H
 
 #include <chrono>
+#include <numeric>
+#include <vector>
+#include <cmath>
+
+double mean(const std::vector<double> &v) {
+    return std::accumulate(v.begin(), v.end(), 0.0l) / v.size();
+}
+
+double stddev(const std::vector<double> &v) {
+    auto mv = mean(v);
+    double s = 0.0l;
+    for (const auto &x: v) {
+        s += (x - mv) * (x - mv);
+    }
+    s /= v.size() - 1ul;
+
+    return sqrt(s);
+}
 
 
 // old school loop unrolling -- CPP macros
@@ -45,6 +63,5 @@ using std::chrono::time_point;
                                                                 start_time)
 static void escape(void *p) { asm volatile("" : : "g"(p) : "memory"); }
 static void clobber() { asm volatile("" : : : "memory"); }
-
 
 #endif

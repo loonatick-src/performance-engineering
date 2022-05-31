@@ -11,20 +11,6 @@ double GLOBAL_DOUBLE;
 
 thread_local unsigned int seed;
 
-double mean(const std::vector<double> &v) {
-    return std::accumulate(v.begin(), v.end(), 0.0l) / v.size();
-}
-
-double stddev(const std::vector<double> &v) {
-    auto mv = mean(v);
-    double s = 0.0l;
-    for (const auto &x: v) {
-        s += (x - mv) * (x - mv);
-    }
-    s /= v.size() - 1ul;
-
-    return sqrt(s);
-}
 
 static void BM_Sqrt(benchmark::State& state) {
     auto x = random_double_r(1.0e8, 1.0e9, &seed);
@@ -100,7 +86,7 @@ static void BM_Rand_ab(benchmark::State& state) {
    }
 }
 
-BENCHMARK(BM_Rand_ab);
+BENCHMARK(BM_Rand_ab)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
 
 
 static void BM_Nop(benchmark::State& state) {
@@ -119,7 +105,7 @@ static void BM_SqrtFPI_small(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_SqrtFPI_small);
+BENCHMARK(BM_SqrtFPI_small)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
 
 
 static void BM_SqrtFPI_large(benchmark::State& state) {
@@ -129,7 +115,7 @@ static void BM_SqrtFPI_large(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_SqrtFPI_large)->ComputeStatistics("stddev", stddev)->Repetitions(10);
+BENCHMARK(BM_SqrtFPI_large)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
 
 
 BENCHMARK_MAIN();

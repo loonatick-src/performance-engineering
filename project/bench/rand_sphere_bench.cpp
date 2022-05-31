@@ -8,12 +8,17 @@
 
 thread_local unsigned int seed;
 
+double GLOBAL_DOUBLE;
+
 static void BM_RandomSphereBaseline(benchmark::State& state) {
     for (auto _: state) {
         auto rand_vec = random_in_unit_sphere();
         escape(&rand_vec);
     }
 }
+
+BENCHMARK(BM_RandomSphereBaseline)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
+
 
 static void BM_RandomSpherePolar(benchmark::State& state) {
     for (auto _: state) {
@@ -23,6 +28,9 @@ static void BM_RandomSpherePolar(benchmark::State& state) {
     }
 }
 
+BENCHMARK(BM_RandomSpherePolar)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
+
+
 static void BM_RandomSphereCartesian(benchmark::State& state) {
     for (auto _: state) {
         auto rand_vec = random_in_unit_sphere_v3();
@@ -30,8 +38,18 @@ static void BM_RandomSphereCartesian(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_RandomSphereBaseline);
-BENCHMARK(BM_RandomSpherePolar);
-BENCHMARK(BM_RandomSphereCartesian);
+BENCHMARK(BM_RandomSphereCartesian)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
+
+
+static void BM_RandomSphereBaselineIter(benchmark::State& state) {
+    for (auto _ : state) {
+        auto v = vec3::random(-1, 1);
+        GLOBAL_DOUBLE = v.length_squared();
+        clobber();
+    }
+}
+
+BENCHMARK(BM_RandomSphereBaselineIter)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
+
 
 BENCHMARK_MAIN();
