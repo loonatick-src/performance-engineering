@@ -64,9 +64,10 @@ static void BM_SqrtRepeat_4_rand(benchmark::State& state) {
 
 BENCHMARK(BM_SqrtRepeat_4_rand);
 
+
 static void BM_SqrtFixedPointIter(benchmark::State& state) {
     // auto x = random_double_r(1.0e6, 1.0e7, &seed);
-    GLOBAL_DOUBLE = random_double_r(1.0e6, 1.0e7, &seed);
+    GLOBAL_DOUBLE = random_double_r(1.0e100, 1.0e200, &seed);
     for (auto _ : state) {
         GLOBAL_DOUBLE = sqrt(GLOBAL_DOUBLE);
         // escape(&x);
@@ -74,6 +75,7 @@ static void BM_SqrtFixedPointIter(benchmark::State& state) {
 }
 
 BENCHMARK(BM_SqrtFixedPointIter);
+
 
 static void BM_Rand_ab(benchmark::State& state) {
    for (auto _ : state) {
@@ -83,5 +85,14 @@ static void BM_Rand_ab(benchmark::State& state) {
 }
 
 BENCHMARK(BM_Rand_ab);
+
+
+static void BM_Nop(benchmark::State& state) {
+    for (auto _: state) {
+        clobber();
+    }
+}
+
+BENCHMARK(BM_Nop);
 
 BENCHMARK_MAIN();
