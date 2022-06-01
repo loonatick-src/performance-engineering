@@ -28,7 +28,7 @@ def sharedPtr():
   sizes = [1, 2, 4, 8, 16]
   shared_ptr = [1.81601, 5.43741, 6.72079, 7.54437, 8.32837]
 
-  plt.plot(sizes, rand, label="shared_ptr")
+  plt.plot(sizes, shared_ptr, label="shared_ptr")
   plt.xticks(sizes, sizes)
   plt.ylabel('Time in seconds')
   plt.xlabel('Number of threads')
@@ -79,7 +79,7 @@ def parseResultFile(filename):
   for p in parsed:
     p['total_rays'] = p['width'] * p['height'] * p['samples_per_pixel']
     p['seconds_per_ray'] = p['seconds_to_render'] / p['total_rays']
-    p['rays_per_second'] = 1.0 / p['seconds_per_ray']
+    p['rays_per_second'] = p['total_rays'] / p['seconds_to_render']
 
   return parsed
 
@@ -121,4 +121,8 @@ def parallel_versions(filename):
   plt.legend()
   plt.show()
 
-parallel_versions("../measurements/v4_results.txt")
+
+# boxIntersectionBars()
+# parallel_versions("../measurements/v4_results.txt")
+
+sharedPtr()
