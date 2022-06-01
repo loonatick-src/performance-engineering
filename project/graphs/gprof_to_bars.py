@@ -1,7 +1,58 @@
-import re
+#/usr/bin/python3
+
 import matplotlib.pyplot as plt
 import numpy as np
 
+def rect_predicate(s):
+    return "_rect::hit" in s
+
+def box_predicate(s):
+    return  "box::hit" in s
+
+def full_rect_predicate(s):
+    return rect_predicate(s) or box_predicate(s)
+
+def full_rect_predicate_list(ls):
+    for s in ls:
+        if full_rect_predicate(s):
+            return True
+
+    return False
+
+def class_name_from_method(s):
+    # Sorry, don't know how to search idiomatically
+    for i,c in enumerate(s):
+        if c == '(':
+            return s[:i]
+
+def lst(xs):
+    return xs[len(xs)-1]
+
+def fst(xs):
+    return xs[0]
+
+def snd(xs):
+    return xs[1]
+
+def parse_entry(ls, idx, dtype):
+    name = class_name_from_method(lst(ls))
+    return (name, dtype(ls[idx]))
+
+def parse_entries(ls, idxs, dtypes):
+    name = class_name_from_method(lst(ls))
+    rv = [dtype(ls[i]) for i,dtype in zip(idxs, dtypes)]
+    return [ name ] + rv
+
+def parse_calls(ls):
+    return parse_entry(ls, 3, int)
+
+def dict_from_pair_list(ls):
+    return {fst(s):snd(s) for s in ls}
+
+rect_runtime_percent = 16.75 + 11.87 + 8.39
+
+
+# We don't do file I/O in this part of town. Ask `boost::multi_array`about it
 text = """
  16.75     11.57    11.57 996121811     0.00     0.00  xz_rect::hit(ray const&, double, double, hit_record&) const
  13.00     20.54     8.98 365608358     0.00     0.00  hittable_list::hit(ray const&, double, double, hit_record&) const
@@ -51,10 +102,26 @@ text = """
 
 lines = [x.strip().split(maxsplit=6) for x in text.split("\n") if x.strip() != ""]
 
+rect_hit_lines = [line for line in lines if full_rect_predicate_list(line)]
+rect_hit_calls = dict_from_pair_list(
+        [parse_calls(rline) for rline in rect_hit_lines]
+        )
+
+
+rect_hits_from_box = rect_hit_calls['box::hit'] * 6
+fraction_box_rect_hits = rect_hits_from_box / sum([rect_hit_calls[k] for k in rect_hit_calls.keys() if rect_predicate(k)])
+
+print(f"{fraction_box_rect_hits * 100} percent of the `.._rect::hit`s are from `box::hit`")
+
+rect_hits_runtime_percent_from_box = fraction_box_rect_hits * rect_runtime_percent
+
+print(f"`box::hit` contributes to at least {rect_hits_runtime_percent_from_box} % to the total runtime")
+
 functions = [f'{x[6].split("(")[0]} ({x[3]})' for x in lines]
 totalTime = [float(x[0]) for x in lines]
 x_pos = np.arange(len(functions))
 
+"""
 plt.bar(x_pos,totalTime)
 plt.xticks(x_pos, functions, rotation=90)
 plt.subplots_adjust(bottom=0.4, top=0.99)
@@ -62,3 +129,4 @@ plt.ylabel('Time spent %')
 plt.xlabel('Function (call count)')
 
 plt.show()
+"""
