@@ -45,7 +45,7 @@ bench: build $(TARGET_BENCH)
 bench_raw: build $(TARGET_BENCH_RAW)
 
 build/%_bench: bench/%_bench.cpp
-	$(CC) -g $(CFLAGS) $(GOOGLE_BENCHMARK_INCLUDE) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer $< -o $@ $(LD_GOOGLE_BENCHMARK) -lbenchmark -lpfm
+	$(CC) -g $(CFLAGS) $(GOOGLE_BENCHMARK_INCLUDE) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer $< -o $@ $(LD_GOOGLE_BENCHMARK) -lbenchmark #-lpfm
 
 build/%_bench_raw: bench/%_bench_raw.cpp
 	$(CC) -g $(CFLAGS) -mno-omit-leaf-frame-pointer -fno-omit-frame-pointer $< -o $@

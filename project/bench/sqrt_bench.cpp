@@ -11,17 +11,21 @@ double GLOBAL_DOUBLE;
 
 thread_local unsigned int seed;
 
+#define PE_REPS 100
+
 
 static void BM_Sqrt(benchmark::State& state) {
     auto x = random_double_r(1.0e8, 1.0e9, &seed);
+    auto y = GLOBAL_DOUBLE;
     for (auto _: state) {
-        GLOBAL_DOUBLE = sqrt(x);
+        y = sqrt(x);
         clobber();
     }
 }
 
-BENCHMARK(BM_Sqrt);
+BENCHMARK(BM_Sqrt)->ComputeStatistics("stddev", stddev)->Repetitions(PE_REPS)->DisplayAggregatesOnly(true);
 
+/*
 // divide final result by 8
 static void BM_SqrtRepeat_8(benchmark::State& state) {
     auto x = random_double_r(1.0e6, 1.0e7, &seed);
@@ -36,7 +40,9 @@ static void BM_SqrtRepeat_8(benchmark::State& state) {
 }
 
 BENCHMARK(BM_SqrtRepeat_8);
+*/
 
+/*
 static void BM_SqrtRepeat_4(benchmark::State& state) {
     auto x = random_double_r(1.0e6, 1.0e7, &seed);
     for (auto _ : state) {
@@ -50,8 +56,10 @@ static void BM_SqrtRepeat_4(benchmark::State& state) {
 }
 
 BENCHMARK(BM_SqrtRepeat_4);
+*/
 
 
+/*
 static void BM_SqrtRepeat_4_rand(benchmark::State& state) {
     for (auto _ : state) {
         GLOBAL_DOUBLE = random_double_r(1.0e10, 1.0e20, &seed);
@@ -65,18 +73,20 @@ static void BM_SqrtRepeat_4_rand(benchmark::State& state) {
 }
 
 BENCHMARK(BM_SqrtRepeat_4_rand);
+*/
 
 
 static void BM_SqrtFixedPointIter(benchmark::State& state) {
     // auto x = random_double_r(1.0e6, 1.0e7, &seed);
-    GLOBAL_DOUBLE = random_double_r(1.0e100, 1.0e200, &seed);
+    auto x = random_double_r(1.0e100, 1.0e200, &seed);
     for (auto _ : state) {
-        GLOBAL_DOUBLE = sqrt(GLOBAL_DOUBLE);
+        x = sqrt(x);
         // escape(&x);
     }
+    GLOBAL_DOUBLE = x;	
 }
 
-BENCHMARK(BM_SqrtFixedPointIter);
+BENCHMARK(BM_SqrtFixedPointIter)->ComputeStatistics("stddev", stddev)->Repetitions(PE_REPS)->DisplayAggregatesOnly(true);
 
 
 static void BM_Rand_ab(benchmark::State& state) {
@@ -86,7 +96,7 @@ static void BM_Rand_ab(benchmark::State& state) {
    }
 }
 
-BENCHMARK(BM_Rand_ab)->ComputeStatistics("stddev", stddev)->Repetitions(10)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_Rand_ab)->ComputeStatistics("stddev", stddev)->Repetitions(PE_REPS)->DisplayAggregatesOnly(true);
 
 
 static void BM_Nop(benchmark::State& state) {
@@ -95,7 +105,7 @@ static void BM_Nop(benchmark::State& state) {
     }
 }
 
-BENCHMARK(BM_Nop);
+BENCHMARK(BM_Nop)->ComputeStatistics("stddev", stddev)->Repetitions(PE_REPS)->DisplayAggregatesOnly(true);
 
 
 static void BM_SqrtFPI_small(benchmark::State& state) {
