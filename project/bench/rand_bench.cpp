@@ -14,14 +14,14 @@ thread_local unsigned int seed;
 #define PE_REPS 100
 
 static void BM_Rand_ab(benchmark::State& state) {
-    double x;
+    double x = -1.0l;
     for (auto _ : state) {
-        x = random_double_r(-1.0l, 1.0l, &seed);
+        x = random_double_r(x, 1.0l, &seed); // once again cockblock that ILP
     }
-    GLOBAL_DOUBLE = x;
+    escape(&x);
 }
 
-BENCHMARK(BM_Rand_ab)->ComputeStatistics("stddev", stddev)->Repetitions(PE_REPS)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_Rand_ab)->Repetitions(PE_REPS)->DisplayAggregatesOnly(true);
 
 
 BENCHMARK_MAIN();

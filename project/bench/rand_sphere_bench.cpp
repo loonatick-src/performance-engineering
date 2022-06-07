@@ -20,7 +20,7 @@ static void BM_RandomSphereBaseline(benchmark::State& state) {
     GLOBAL_DOUBLE = rand_vec.y();
 }
 
-BENCHMARK(BM_RandomSphereBaseline)->ComputeStatistics("stddev", stddev)->Repetitions(100)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_RandomSphereBaseline)->Repetitions(100)->DisplayAggregatesOnly(true);
 
 
 static void BM_RandomSpherePolar(benchmark::State& state) {
@@ -32,7 +32,7 @@ static void BM_RandomSpherePolar(benchmark::State& state) {
     GLOBAL_DOUBLE = rand_vec.x();
 }
 
-BENCHMARK(BM_RandomSpherePolar)->ComputeStatistics("stddev", stddev)->Repetitions(100)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_RandomSpherePolar)->Repetitions(100)->DisplayAggregatesOnly(true);
 
 
 static void BM_RandomSphereCartesian(benchmark::State& state) {
@@ -44,20 +44,20 @@ static void BM_RandomSphereCartesian(benchmark::State& state) {
     GLOBAL_DOUBLE = rand_vec.z();
 }
 
-BENCHMARK(BM_RandomSphereCartesian)->ComputeStatistics("stddev", stddev)->Repetitions(100)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_RandomSphereCartesian)->Repetitions(100)->DisplayAggregatesOnly(true);
 
 
 static void BM_RandomSphereBaselineIter(benchmark::State& state) {
-    int hit_count = 0;
+    vec3 v;
     for (auto _ : state) {
-        auto v = vec3::random(-1, 1);
-        if (v.length_squared() < 1.0l) hit_count++;
-        clobber();
+        auto v_temp = vec3::random(-1, 1);
+        if (v_temp.length_squared() >= 1.0l) continue;
+	v = v_temp;  // emulate return statement
     }
-    GLOBAL_INT = hit_count;
+    escape(&v);
 }
 
-BENCHMARK(BM_RandomSphereBaselineIter)->ComputeStatistics("stddev", stddev)->Repetitions(100)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_RandomSphereBaselineIter)->Repetitions(100)->DisplayAggregatesOnly(true);
 
 
 BENCHMARK_MAIN();

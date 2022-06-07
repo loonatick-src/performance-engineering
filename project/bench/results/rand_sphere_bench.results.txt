@@ -1,0 +1,23 @@
+----------------------------------------------------------------------------------------
+Benchmark                                              Time             CPU   Iterations
+----------------------------------------------------------------------------------------
+BM_RandomSphereBaseline/repeats:10_mean             48.2 ns         48.2 ns           10
+BM_RandomSphereBaseline/repeats:10_median           46.6 ns         46.6 ns           10
+BM_RandomSphereBaseline/repeats:10_stddev           4.90 ns         4.90 ns           10
+BM_RandomSphereBaseline/repeats:10_cv              10.15 %         10.15 %            10
+BM_RandomSphereBaseline/repeats:10_stddev           4.90 ns         4.90 ns           10
+BM_RandomSpherePolar/repeats:10_mean                 163 ns          163 ns           10
+BM_RandomSpherePolar/repeats:10_median               163 ns          163 ns           10
+BM_RandomSpherePolar/repeats:10_stddev             0.085 ns        0.085 ns           10
+BM_RandomSpherePolar/repeats:10_cv                  0.05 %          0.05 %            10
+BM_RandomSpherePolar/repeats:10_stddev             0.085 ns        0.085 ns           10
+BM_RandomSphereCartesian/repeats:10_mean            23.1 ns         23.1 ns           10
+BM_RandomSphereCartesian/repeats:10_median          23.1 ns         23.1 ns           10
+BM_RandomSphereCartesian/repeats:10_stddev         0.092 ns        0.092 ns           10
+BM_RandomSphereCartesian/repeats:10_cv              0.40 %          0.40 %            10
+BM_RandomSphereCartesian/repeats:10_stddev         0.092 ns        0.092 ns           10
+BM_RandomSphereBaselineIter/repeats:10_mean         17.0 ns         17.0 ns           10
+BM_RandomSphereBaselineIter/repeats:10_median       16.9 ns         16.9 ns           10
+BM_RandomSphereBaselineIter/repeats:10_stddev      0.125 ns        0.125 ns           10
+BM_RandomSphereBaselineIter/repeats:10_cv           0.74 %          0.73 %            10
+BM_RandomSphereBaselineIter/repeats:10_stddev      0.125 ns        0.125 ns           10

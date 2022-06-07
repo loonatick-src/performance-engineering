@@ -6,6 +6,7 @@
 #include <vector>
 #include <cmath>
 
+
 double mean(const std::vector<double> &v) {
     return std::accumulate(v.begin(), v.end(), 0.0l) / v.size();
 }

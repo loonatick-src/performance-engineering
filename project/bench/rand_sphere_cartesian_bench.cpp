@@ -8,12 +8,12 @@ thread_local unsigned int seed;
 
 vec3 GLOBAL_VEC3;
 
-static void BM_RandSphereBaseline(benchmark::State& state) {
+static void BM_RandSphereCartesian(benchmark::State &state) {
     for (auto _ : state) {
-        GLOBAL_VEC3 = random_in_unit_sphere();
+        GLOBAL_VEC3 = random_in_unit_sphere_v3();
     }
 }
 
-BENCHMARK(BM_RandSphereBaseline)->Repetitions(100)->DisplayAggregatesOnly(true);
+BENCHMARK(BM_RandSphereCartesian)->Repetitions(100)->DisplayAggregatesOnly(true);
 
 BENCHMARK_MAIN();
